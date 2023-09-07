@@ -3,12 +3,11 @@
 #include <iostream>
 #include <list>
 #include <unordered_map>
-#include <unordered_set>
 
 namespace caches {
 
 template <typename T, typename KeyT = int>
-class Cache{
+class ARC{
 private:
     size_t cache_size{0};
     size_t hits{0};
@@ -20,9 +19,13 @@ private:
     struct buffer {
         list_t list;
         hash_t hash;
+        void clear() {
+            list.clear();
+            hash.clear();
+        }
     };
     buffer mru, mfu, mru_ghost, mfu_ghost;
-    std::unordered_set<KeyT> global_hash;
+
     void move(buffer& src, buffer& dst, KeyT key) {
         src.list.erase(src.hash[key]);
 
@@ -46,16 +49,18 @@ private:
             mfu.hash.erase(lfu);
         }
     }
+
 public:
-    Cache(size_t size): cache_size(size) {}
+    ARC(size_t size): cache_size(size) {}
+    void setSize(size_t size) {cache_size = size;}
     size_t getHits() const {return hits;}
     bool full(const list_t& list) const {return (list.size() == cache_size);}
 
-    bool lookup_update(int key)
+    void lookup_update(int key)
     {
         if(mru.hash.find(key) != mru.hash.end()) {
             hits++;
-            move(mru, mfu, key); //Move x to MRU pos in mfu
+            move(mru, mfu, key);
             mfu.hash.emplace(key, mfu.list.begin());
             mru.hash.erase(key);
         }
@@ -96,6 +101,24 @@ public:
             mru.list.emplace_front(key);
             mru.hash.emplace(key, mru.list.begin());
         }
+    }
+
+    void clear() {
+        mru.clear();
+        mfu.clear();
+        mru_ghost.clear();
+        mfu_ghost.clear();
+        hits = 0;
+    }
+
+    void print() const {
+        std::cout << "Hits: " << hits << std::endl;
+        std::cout << "MRU size: " << mru.list.size() << std::endl;
+        std::cout << "MFU size: " << mfu.list.size() << std::endl;
+        std::cout << "MRU ghost size: " << mfu_ghost.list.size() << std::endl;
+        std::cout << "MFU ghost size: " << mru_ghost.list.size() << std::endl;
+        std::cout << "p : " << p << std::endl;
+        std::cout << "==========================================" << std::endl;
     }
 };
 
