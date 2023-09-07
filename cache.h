@@ -3,50 +3,98 @@
 #include <iostream>
 #include <list>
 #include <unordered_map>
+#include <unordered_set>
 
-namespace my {
+namespace caches {
 
 template <typename T, typename KeyT = int>
 class Cache{
 private:
-    size_t m_size;
-    size_t mru_size, mfu_size;
-    std::list<std::pair<KeyT, T>> mru, mfu;
-    std::list<std::pair<KeyT, T>> mru_ghost, mfu_ghost;
-    using ListIt = typename std::list<std::pair<KeyT, T>>::iterator;
+    size_t cache_size{0};
+    size_t hits{0};
+    double p{0};
+    using list_t = typename std::list<KeyT>;
+    using list_it = typename std::list<KeyT>::iterator;
+    using hash_t = typename std::unordered_map<KeyT, list_it>;
 
-    std::unordered_map<KeyT, ListIt> m_hash;
-    std::unordered_map<KeyT, ListIt> m_hash_g;
-public:
-    Cache(size_t size): m_size(size) {mru_size = m_size; mfu_size = m_size;}
+    struct buffer {
+        list_t list;
+        hash_t hash;
+    };
+    buffer mru, mfu, mru_ghost, mfu_ghost;
+    std::unordered_set<KeyT> global_hash;
+    void move(buffer& src, buffer& dst, KeyT key) {
+        src.list.erase(src.hash[key]);
 
-    bool full(const std::unordered_map<KeyT, ListIt>& list, size_t size) const {return (list.size() == size);}
+        if(full(dst.list)) {
+            dst.list.pop_back();
+        }
+        dst.list.emplace_front(key);
 
-    template<typename F_ptr>
-    bool lookup_update(int key, F_ptr slow_get_page)
-    {
-        auto hit = m_hash.find(key);
-        if(hit == std::end(m_hash)) {
-            if(full(mru, mru_size)) {
-                m_hash_g.emplace(mru.back().first, std::end(mru));
-                m_hash.erase(mru.back().first);
-                mru_ghost.emplace_front(mru.back());
-                mru.pop_back();
-            }
-            else if(full(mru_ghost, mru_size)) {
-                m_hash_g.erase(mru_ghost.back().first);
-                mru_ghost.pop_back();
-            }
-            mru.emplace_front(key, slow_get_page(key));
-            m_hash.emplace(key, std::begin(mru));
-
-            return false;
+    }
+    void toGhost(const KeyT i, const double p) {
+        if(!mru.list.empty() && ((mru.list.size() > p) || ((mfu_ghost.hash.find(i) != mfu_ghost.hash.end()) && (p == mru.list.size())))) {
+            mru_ghost.hash.emplace(mru.list.back(), mru.list.begin());
+            auto lru = mru.list.back();
+            move(mru, mru_ghost, lru);
+            mru.hash.erase(lru);
         }
         else {
-            auto eltit = hit->second;
-            if(eltit != std::begin(mru))
-                mru.splice(std::begin(mru), mru, eltit, std::next(eltit));
-            return true;
+            mfu_ghost.hash.emplace(mfu.list.back(), mfu.list.begin());
+            auto lfu = mfu.list.back();
+            move(mfu, mfu_ghost, mru.list.back());
+            mfu.hash.erase(lfu);
+        }
+    }
+public:
+    Cache(size_t size): cache_size(size) {}
+    size_t getHits() const {return hits;}
+    bool full(const list_t& list) const {return (list.size() == cache_size);}
+
+    bool lookup_update(int key)
+    {
+        if(mru.hash.find(key) != mru.hash.end()) {
+            hits++;
+            move(mru, mfu, key); //Move x to MRU pos in mfu
+            mfu.hash.emplace(key, mfu.list.begin());
+            mru.hash.erase(key);
+        }
+        else if(mfu.hash.find(key) != mfu.hash.end()) {
+            hits++;
+            move(mfu, mfu, key);
+        }
+        else if(mru_ghost.hash.find(key) != mru_ghost.hash.end()) {
+            p = std::min(static_cast<double>(cache_size), p+std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
+            toGhost(key, p);
+            move(mru_ghost, mfu, key);
+        }
+        else if(mfu_ghost.hash.find(key) != mfu_ghost.hash.end()) {
+            p = std::min(static_cast<double>(cache_size), p-std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
+            toGhost(key, p);
+            move(mfu_ghost, mfu, key);
+        }
+        else {
+            if(mru.list.size() + mru_ghost.list.size() == cache_size) {
+                if(mru.list.size() < cache_size) {
+                    mru_ghost.hash.erase(mru_ghost.list.back());
+                    mru_ghost.list.pop_back();
+                    toGhost(key, p);
+                }
+                else {
+                    mru.hash.erase(mru.list.back());
+                    mru.list.pop_back();
+                }
+            }
+            else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
+                if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() >= cache_size) {
+                    if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() == 2*cache_size) {
+                        mfu_ghost.list.pop_back();
+                    }
+                    toGhost(key, p);
+                }
+            }
+            mru.list.emplace_front(key);
+            mru.hash.emplace(key, mru.list.begin());
         }
     }
 };

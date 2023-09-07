@@ -8,17 +8,11 @@ int main()
 {
     size_t hits{0};
     size_t m = 4, n = 0;
-    std::unordered_map<int, std::pair<int, int>> m_hash;
-    my::Cache<int> c{m};
-    std::vector<int> indices = {1, 2, 3, 4, 1, 2, 5, 1, 2, 4, 3, 4};
-//    for(auto i = 0; i < n; ++i) {
-//        int tmp;
-//        std::cin >> tmp;
-//        if(c.lookup_update(tmp, slow_get_page_int)) hits++;
-//    }
+    caches::Cache<int> c{m};
+    std::vector<int> indices = {1, 2, 1, 4, 5, 6, 7, 8, 2, 4, 3, 4};
     for(const auto& i : indices) {
-        if(c.lookup_update(i, slow_get_page_int)) hits++;
+        c.lookup_update(i);
     }
-    std::cout << hits << std::endl;
+    std::cout << c.getHits() << std::endl;
     return 0;
 }
