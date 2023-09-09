@@ -3,11 +3,8 @@
 #include "arc.h"
 #include "ideal_cache.h"
 
-//#define DEFINE_ARC
-
 int main()
 {
-
     size_t m, n;
     std::cin >> m >> n;
     std::vector<int> pages;
@@ -17,8 +14,6 @@ int main()
         pages.push_back(tmp);
     }
 #ifdef DEFINE_ARC
-
-
     caches::ARC<int> arc{m};
     auto test {[&](std::vector<int>& pages){
         for(const auto& i : pages) {
@@ -28,7 +23,6 @@ int main()
         arc.clear();
     }};
     test(pages);
-
 #else
     caches::IdealCache<int> ideal;
     for(const auto& i : pages) {
