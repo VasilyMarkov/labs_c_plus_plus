@@ -13,7 +13,7 @@ int main()
         std::cin >> tmp;
         pages.push_back(tmp);
     }
-#ifdef DEFINE_ARC
+#ifdef ARC_DEF
     caches::ARC<int> arc{m};
     auto test {[&](std::vector<int>& pages){
         for(const auto& i : pages) {

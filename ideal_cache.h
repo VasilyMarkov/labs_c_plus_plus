@@ -1,6 +1,7 @@
 #ifndef IDEAL_CACHE_H
 #define IDEAL_CACHE_H
 #include <unordered_set>
+
 namespace caches {
 template<typename KeyT>
 class IdealCache {

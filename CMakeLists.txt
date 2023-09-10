@@ -5,13 +5,13 @@ project(cache LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(DEFINE_ARC TRUE)
+set(ARC_SRC main.cpp arc.h)
 
-set(SOURCES main.cpp)
+set(IDEAL_SRC main.cpp ideal_cache.h)
 
-if(DEFINE_ARC)
-    add_compile_definitions(DEFINE_ARC)
-    add_executable(arc ${SOURCES})
-else()
-    add_executable(ideal_cache ${SOURCES})
-endif()
+add_executable(arc ${ARC_SRC})
+target_compile_definitions(arc
+    PRIVATE
+        ARC_DEF)
+        
+add_executable(ideal ${IDEAL_SRC})
