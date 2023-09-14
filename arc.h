@@ -45,7 +45,7 @@ private:
         else {
             mfu_ghost.hash.emplace(mfu.list.back(), mfu.list.begin());
             auto lfu = mfu.list.back();
-            move(mfu, mfu_ghost, mru.list.back());
+            move(mfu, mfu_ghost, lfu);
             mfu.hash.erase(lfu);
         }
     }
@@ -69,11 +69,13 @@ public:
             move(mfu, mfu, key);
         }
         else if(mru_ghost.hash.find(key) != mru_ghost.hash.end()) {
+            hits++;
             p = std::min(static_cast<double>(cache_size), p+std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
             toGhost(key, p);
             move(mru_ghost, mfu, key);
         }
         else if(mfu_ghost.hash.find(key) != mfu_ghost.hash.end()) {
+            hits++;
             p = std::min(static_cast<double>(cache_size), p-std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
             toGhost(key, p);
             move(mfu_ghost, mfu, key);

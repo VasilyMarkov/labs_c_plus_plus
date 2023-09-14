@@ -9,7 +9,12 @@ set(ARC_SRC main.cpp arc.h)
 
 set(IDEAL_SRC main.cpp ideal_cache.h)
 
+add_compile_options(${CMAKEc_CXX_FLAGS})
+
+message("CMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}")
+
 add_executable(arc ${ARC_SRC})
+
 target_compile_definitions(arc
     PRIVATE
         ARC_DEF)
