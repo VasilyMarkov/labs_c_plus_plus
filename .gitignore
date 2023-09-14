@@ -71,9 +71,9 @@ Thumbs.db
 *.dll
 *.exe
 
-CMakeLists.txt.user.
+*.txt.user
 .vscode
 release
 googletest
-test_main.cpp
 *.gitmodules
+
