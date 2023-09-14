@@ -74,3 +74,6 @@ Thumbs.db
 CMakeLists.txt.user.
 .vscode
 release
+googletest
+test_main.cpp
+*.gitmodules
