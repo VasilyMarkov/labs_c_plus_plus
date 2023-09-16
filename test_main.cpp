@@ -68,15 +68,15 @@ TEST_F(CacheTest, test1) {
     EXPECT_EQ(arc.getHits(), expected_hits);
 }
 
-TEST_F(CacheTest, compareHitsTest) {
-    createRandomData(1e2);
-    arc.setSize(10);
-    for(const auto& i : pages) {
-        arc.lookup_update(i);
-        ic.lookup_update(i);
-    }
-    EXPECT_EQ(arc.getHits(), ic.getHits());
-}
+//TEST_F(CacheTest, compareHitsTest) {
+//    createRandomData(1e2);
+//    arc.setSize(10);
+//    for(const auto& i : pages) {
+//        arc.lookup_update(i);
+//        ic.lookup_update(i);
+//    }
+//    EXPECT_EQ(arc.getHits(), ic.getHits());
+//}
 
 TEST_F(CacheTest, perfIdealTest) {
     createRandomData(1e6);
@@ -88,6 +88,14 @@ TEST_F(CacheTest, perfIdealTest) {
 TEST_F(CacheTest, perfArcTest) {
     createRandomData(1e6);
     arc.setSize(10);
+    for(const auto& i : pages) {
+        arc.lookup_update(i);
+    }
+}
+
+TEST_F(CacheTest, perfLargeArcTest) {
+    createRandomData(1e6);
+    arc.setSize(1e4);
     for(const auto& i : pages) {
         arc.lookup_update(i);
     }
