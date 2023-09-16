@@ -2,12 +2,12 @@
 #include <vector>
 #include "arc.h"
 #include "ideal_cache.h"
-
 int main()
 {
+    std::vector<int> pages;
     size_t m, n;
     std::cin >> m >> n;
-    std::vector<int> pages;
+
     for(size_t i = 0; i < n; ++i) {
         int tmp;
         std::cin >> tmp;
