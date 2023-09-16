@@ -33,8 +33,14 @@ private:
         if(full(dst.list)) {
             dst.list.pop_back();
         }
-        dst.list.emplace_front(key);
-
+        if(dst.list.empty()) {
+            dst.list.emplace_front(key);
+        }
+        else {
+            auto old_top_key = dst.list.front();
+            dst.list.emplace_front(key);
+            dst.hash[old_top_key] = std::next(dst.list.begin(), 1);
+        }
     }
     void toGhost(const KeyT i, const double p) {
         if(!mru.list.empty() && ((mru.list.size() > p) || ((mfu_ghost.hash.find(i) != mfu_ghost.hash.end()) && (p == mru.list.size())))) {
@@ -103,6 +109,7 @@ public:
             else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
                 if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() >= cache_size) {
                     if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() == 2*cache_size) {
+                        mfu_ghost.hash.erase(mfu_ghost.list.back());
                         mfu_ghost.list.pop_back();
                     }
                     toGhost(key, p);
