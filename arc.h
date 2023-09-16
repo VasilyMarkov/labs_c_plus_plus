@@ -51,6 +51,7 @@ private:
     }
 
 public:
+    ARC():cache_size(0) {}
     ARC(size_t size): cache_size(size) {}
     void setSize(size_t size) {cache_size = size;}
     size_t getHits() const {return hits;}
