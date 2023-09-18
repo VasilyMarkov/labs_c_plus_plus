@@ -68,7 +68,27 @@ TEST_F(CacheTest, test1) {
     EXPECT_EQ(arc.getHits(), 7);
 }
 
-TEST_F(CacheTest, checkMFU) {
+TEST_F(CacheTest, increasingMru_MruGhostHiting) {
+    std::vector<int> pages = {1, 2, 3, 4, 1, 2, 5, 1, 3, 6};
+    arc.setSize(4);
+    arc.checkArc(true);
+    for(const auto& i : pages) {
+        arc.lookup_update(i);
+    }
+    EXPECT_EQ(arc.getP(), 1);
+}
+
+TEST_F(CacheTest, increasingMfu_MfuGhostHiting) {
+    std::vector<int> pages = {1, 2, 3, 4, 5, 1, 2, 3, 4, 6, 5, 1, 8};
+    arc.setSize(5);
+    arc.checkArc(true);
+    for(const auto& i : pages) {
+        arc.lookup_update(i);
+    }
+    EXPECT_EQ(arc.getP(), 0);
+}
+
+TEST_F(CacheTest, checkMRU) {
     std::vector<int> pages = {1, 2, 3, 4, 5, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1};
     arc.setSize(6);
     arc.checkArc(true);
@@ -92,7 +112,6 @@ TEST_F(CacheTest, consistCheck) {
     catch (...) {
         FAIL();
     }
-
 }
 
 TEST_F(CacheTest, perfIdealTest) {
