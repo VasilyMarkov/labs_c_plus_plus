@@ -88,7 +88,7 @@ TEST_F(CacheTest, increasingMfu_MfuGhostHiting) {
     EXPECT_EQ(arc.getP(), 0);
 }
 
-TEST_F(CacheTest, checkMRU) {
+TEST_F(CacheTest, checkMFU) {
     std::vector<int> pages = {1, 2, 3, 4, 5, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1};
     arc.setSize(6);
     arc.checkArc(true);
