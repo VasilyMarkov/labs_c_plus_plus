@@ -97,7 +97,7 @@ public:
     void checkArc(bool flag) {check = flag;}
     bool lookup_update(int key)
     {
-        try {
+
             if(mru.hash.find(key) != mru.hash.end()) {
                 hits++;
                 move(mru, mfu, key);
@@ -150,11 +150,11 @@ public:
             }
             if(check) cacheConsistency();
             cnt++;
-        }
-        catch (std::string& e) {
-            std::cout << e << std::endl;
-            return false;
-        }
+
+//        catch (std::string& e) {
+//            std::cout << e << std::endl;
+//            return false;
+//        }
         return true;
     }
 

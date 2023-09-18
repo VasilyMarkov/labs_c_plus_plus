@@ -30,6 +30,5 @@ int main()
     }
     std::cout << ideal.getHits() << std::endl;
 #endif
-
     return 0;
 }

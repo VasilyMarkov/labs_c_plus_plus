@@ -60,23 +60,40 @@ TEST_F(CacheTest, isEmptyInitiallyArc) {
 TEST_F(CacheTest, test1) {
     std::vector<int> pages = {1, 2, 3, 4, 1, 2, 5, 1, 2, 4, 3, 4};
     setData(std::move(pages));
-    size_t expected_hits = 7;
     arc.setSize(4);
+    arc.checkArc(true);
     for(const auto& i : pages) {
         arc.lookup_update(i);
     }
-    EXPECT_EQ(arc.getHits(), expected_hits);
+    EXPECT_EQ(arc.getHits(), 7);
 }
 
-//TEST_F(CacheTest, compareHitsTest) {
-//    createRandomData(1e2);
-//    arc.setSize(10);
-//    for(const auto& i : pages) {
-//        arc.lookup_update(i);
-//        ic.lookup_update(i);
-//    }
-//    EXPECT_EQ(arc.getHits(), ic.getHits());
-//}
+TEST_F(CacheTest, checkMFU) {
+    std::vector<int> pages = {1, 2, 3, 4, 5, 1, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 1};
+    arc.setSize(6);
+    arc.checkArc(true);
+    for(const auto& i : pages) {
+        arc.lookup_update(i);
+    }
+    EXPECT_EQ(arc.getHits(), 2);
+}
+
+TEST_F(CacheTest, consistCheck) {
+    arc.setSize(10);
+    arc.checkArc(true);
+    try {
+        for(auto i = 0; i < 1000; ++i) {
+            createRandomData(1000);
+            for(const auto& i : pages) {
+                arc.lookup_update(i);
+            }
+        }
+    }
+    catch (...) {
+        FAIL();
+    }
+
+}
 
 TEST_F(CacheTest, perfIdealTest) {
     createRandomData(1e6);
@@ -88,6 +105,7 @@ TEST_F(CacheTest, perfIdealTest) {
 TEST_F(CacheTest, perfArcTest) {
     createRandomData(1e6);
     arc.setSize(10);
+    arc.checkArc(true);
     for(const auto& i : pages) {
         arc.lookup_update(i);
     }
@@ -96,6 +114,7 @@ TEST_F(CacheTest, perfArcTest) {
 TEST_F(CacheTest, perfLargeArcTest) {
     createRandomData(1e6);
     arc.setSize(1e4);
+    arc.checkArc(false);
     for(const auto& i : pages) {
         arc.lookup_update(i);
     }
