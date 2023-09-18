@@ -93,6 +93,7 @@ public:
     void setSize(size_t size) {cache_size = size;}
     size_t getHits() const {return hits;}
     size_t getCount() const {return cnt;}
+    int getP() const {return p;}
     bool full(const list_t& list) const {return (list.size() == cache_size);}
     void checkArc(bool flag) {check = flag;}
     bool lookup_update(int key)
@@ -118,7 +119,7 @@ public:
             }
             else if(mfu_ghost.hash.find(key) != mfu_ghost.hash.end()) {
                 hits++;
-                p = std::min(static_cast<double>(cache_size), p-std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
+                p = std::min(static_cast<double>(cache_size), p-std::max(static_cast<double>(mru_ghost.list.size())/mfu_ghost.list.size(), 1.0));
                 toGhost(key, p);
                 move(mfu_ghost, mfu, key);
                 mfu_ghost.hash.erase(key);
