@@ -87,6 +87,7 @@ private:
         checkCache(mru_ghost);
         checkCache(mfu_ghost);
     }
+    bool full(const list_t& list) const {return (list.size() == cache_size);}
 public:
     ARC():cache_size(0) {}
     ARC(size_t size): cache_size(size) {}
@@ -94,7 +95,6 @@ public:
     size_t getHits() const {return hits;}
     size_t getCount() const {return cnt;}
     int getP() const {return p;}
-    bool full(const list_t& list) const {return (list.size() == cache_size);}
     void checkArc(bool flag) {check = flag;}
     bool lookup_update(int key)
     {
