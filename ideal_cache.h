@@ -7,7 +7,7 @@
 #include <list>
 
 namespace caches {
-template<typename KeyT>
+template<typename KeyT = int>
 class IdealCache {
     size_t hits{0};
     size_t cache_size{0};
@@ -15,48 +15,50 @@ class IdealCache {
     std::unordered_set<KeyT> window_hash;
     std::list<KeyT> cache;
     std::vector<KeyT> input_buffer;
-    std::vector<KeyT> input_window;
+    std::vector<KeyT> future_window; //Contains future elements
     bool full(const std::list<KeyT>& list) const {return (list.size() == cache_size);}
-    void moveBuffer(std::vector<double>& src, std::vector<double>& window, size_t step) {
-        //std::copy()
+    void updateWindow() {
+        future_window = {std::begin(input_buffer), std::begin(input_buffer)+cache_size};
+        window_hash = {std::begin(input_buffer), std::begin(input_buffer)+cache_size};
     }
 public:
     IdealCache():cache_size(0) {}
     IdealCache(const std::vector<KeyT>& buffer): input_buffer(buffer) {
     }
-    void setBuffer(const std::vector<KeyT>& buffer) {
-        input_buffer(buffer);
-        input_window(std::begin(buffer, std::begin(buffer)+5));
+    void setBuffer(std::vector<KeyT>& buffer) {
+        input_buffer = buffer;
+        updateWindow();
     }
     size_t getHits() const {return hits;}
     void setSize(size_t size) {
         cache_size = size;
-
+        future_window.resize(cache_size);
     }
-    void lookup_update(KeyT key) {
+    template<typename F>
+    KeyT lookup_update(KeyT key, F slow_get_page) {
+        KeyT page;
+        if(full(cache)) {
+            if(hash.find(key) != hash.end()) {
+                hits++;
+                page = slow_get_page(key);
+            }
+            else {
+                for(auto it = cache.begin(); it != cache.end(); ++it) { //Replace if future_window doesn't contain key
+                    if(window_hash.find(*it) == window_hash.end()) {
+                        hash.erase(*it);
+                        *it = key;
+                        hash.emplace(key);
+                    }
+                }
+            }
+        }
+        else {
+            cache.emplace_back(key);
+            hash.emplace(key);
+        }
         input_buffer.erase(std::begin(input_buffer));
-//        input_buffer.push_back(key);
-//        input_buffer_hash.emplace(key);
-//        if(input_buffer.size() == cache_size+1) {
-//            if(full(cache)) {
-//                 if(hash.find(input_buffer.front()) != hash.end() ) {
-//                    hits++;
-//                 }
-//                 else {
-//                    for(auto it = cache.begin(); it != cache.end(); ++it) {
-//                        if(input_buffer_hash.find(*it) != hash.end()) {
-//                            cache.erase(it);
-//                            cache.insert(it, input_buffer.front());
-//                        }
-//                    }
-//                 }
-//            }
-//            else {
-//                cache.push_back(input_buffer.front());
-//            }
-//            input_buffer_hash.erase(input_buffer.front());
-//            input_buffer.pop_front();
-//        }
+        updateWindow();
+        return page;
     }
 };
 }
