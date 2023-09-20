@@ -24,7 +24,8 @@ int main()
     }};
     test(pages);
 #else
-    caches::IdealCache<int> ideal;
+    caches::IdealCache<int> ideal{m};
+    ideal.setBuffer(pages);
     for(const auto& i : pages) {
         ideal.lookup_update(i);
     }
