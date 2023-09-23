@@ -52,6 +52,9 @@ public:
                 hits++;
             }
             else {
+                if(input_hash.find(key) == input_hash.end()) {
+                    return;
+                }
                 size_t max_index = 0;
                 auto max_element_it = std::begin(cache);
 
