@@ -15,15 +15,17 @@ class IdealCache {
     std::unordered_set<KeyT> hash;
     std::unordered_map<KeyT, size_t> input_hash;
     std::list<KeyT> cache;
-    std::vector<KeyT> input_buffer;
+    std::vector<KeyT> input_buffer, future_window;
 
     bool full(const std::list<KeyT>& list) const {return (list.size() == cache_size);}
-
+    void updateWindow() {
+        future_window = {std::begin(input_buffer), std::begin(input_buffer)+10};
+    }
     void updateMap() { //Keys with minimal indexes
         input_hash.clear();
-        for(auto i = 0; i < input_buffer.size(); ++i) {
-            if(input_hash.find(input_buffer[i]) == input_hash.end()) {
-                input_hash.emplace(input_buffer[i], i);
+        for(auto i = 0; i < future_window.size(); ++i) {
+            if(input_hash.find(future_window[i]) == input_hash.end()) {
+                input_hash.emplace(future_window[i], i);
             }
         }
     }
@@ -34,6 +36,7 @@ public:
 
     void setBuffer(std::vector<KeyT>& buffer) {
         input_buffer = buffer;
+        updateWindow();
         updateMap();
     }
     size_t getHits() const {return hits;}
@@ -46,6 +49,7 @@ public:
         if(input_buffer.empty()) return;
 
         input_buffer.erase(std::begin(input_buffer));
+        updateWindow();
         updateMap();
         if(full(cache)) {
             if(hash.find(key) != hash.end()) {
