@@ -96,67 +96,59 @@ public:
     size_t getCount() const {return cnt;}
     int getP() const {return p;}
     void checkArc(bool flag) {check = flag;}
-    bool lookup_update(int key)
+    void lookup_update(int key)
     {
-
-            if(mru.hash.find(key) != mru.hash.end()) {
-                hits++;
-                move(mru, mfu, key);
-                mfu.hash.emplace(key, mfu.list.begin());
-                mru.hash.erase(key);
-            }
-            else if(mfu.hash.find(key) != mfu.hash.end()) {
-                hits++;
-                move(mfu, mfu, key);
-            }
-            else if(mru_ghost.hash.find(key) != mru_ghost.hash.end()) {
-                hits++;
-                p = std::min(static_cast<double>(cache_size), p+std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
-                toGhost(key, p);
-                move(mru_ghost, mfu, key);
-                mru_ghost.hash.erase(key);
-                mfu.hash.emplace(key, mfu.list.begin());
-            }
-            else if(mfu_ghost.hash.find(key) != mfu_ghost.hash.end()) {
-                hits++;
-                p = std::min(static_cast<double>(cache_size), p-std::max(static_cast<double>(mru_ghost.list.size())/mfu_ghost.list.size(), 1.0));
-                toGhost(key, p);
-                move(mfu_ghost, mfu, key);
-                mfu_ghost.hash.erase(key);
-                mfu.hash.emplace(key, mfu.list.begin());
-            }
-            else {
-                if(mru.list.size() + mru_ghost.list.size() == cache_size) {
-                    if(mru.list.size() < cache_size) {
-                        mru_ghost.hash.erase(mru_ghost.list.back());
-                        mru_ghost.list.pop_back();
-                        toGhost(key, p);
-                    }
-                    else {
-                        mru.hash.erase(mru.list.back());
-                        mru.list.pop_back();
-                    }
+        if(mru.hash.find(key) != mru.hash.end()) {
+            hits++;
+            move(mru, mfu, key);
+            mfu.hash.emplace(key, mfu.list.begin());
+            mru.hash.erase(key);
+        }
+        else if(mfu.hash.find(key) != mfu.hash.end()) {
+            hits++;
+            move(mfu, mfu, key);
+        }
+        else if(mru_ghost.hash.find(key) != mru_ghost.hash.end()) {
+            hits++;
+            p = std::min(static_cast<double>(cache_size), p+std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
+            toGhost(key, p);
+            move(mru_ghost, mfu, key);
+            mru_ghost.hash.erase(key);
+            mfu.hash.emplace(key, mfu.list.begin());
+        }
+        else if(mfu_ghost.hash.find(key) != mfu_ghost.hash.end()) {
+            hits++;
+            p = std::min(static_cast<double>(cache_size), p-std::max(static_cast<double>(mru_ghost.list.size())/mfu_ghost.list.size(), 1.0));
+            toGhost(key, p);
+            move(mfu_ghost, mfu, key);
+            mfu_ghost.hash.erase(key);
+            mfu.hash.emplace(key, mfu.list.begin());
+        }
+        else {
+            if(mru.list.size() + mru_ghost.list.size() == cache_size) {
+                if(mru.list.size() < cache_size) {
+                    mru_ghost.hash.erase(mru_ghost.list.back());
+                    mru_ghost.list.pop_back();
+                    toGhost(key, p);
                 }
-                else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
-                    if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() >= cache_size) {
-                        if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() == 2*cache_size) {
-                            mfu_ghost.hash.erase(mfu_ghost.list.back());
-                            mfu_ghost.list.pop_back();
-                        }
-                        toGhost(key, p);
-                    }
+                else {
+                    mru.hash.erase(mru.list.back());
+                    mru.list.pop_back();
                 }
-                mru.list.emplace_front(key);
-                mru.hash.emplace(key, mru.list.begin());
             }
-            if(check) cacheConsistency();
-            cnt++;
-
-//        catch (std::string& e) {
-//            std::cout << e << std::endl;
-//            return false;
-//        }
-        return true;
+            else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
+                if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() >= cache_size) {
+                    if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() == 2*cache_size) {
+                        mfu_ghost.hash.erase(mfu_ghost.list.back());
+                        mfu_ghost.list.pop_back();
+                    }
+                    toGhost(key, p);
+                }
+            }
+            mru.list.emplace_front(key);
+            mru.hash.emplace(key, mru.list.begin());
+        }
+        if(check) cacheConsistency();
     }
 
     void clear() {

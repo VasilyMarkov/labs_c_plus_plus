@@ -1,13 +1,14 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
 #include "arc.h"
 #include "ideal_cache.h"
+using namespace std::chrono;
 int main()
 {
     std::vector<int> pages;
     size_t m, n;
     std::cin >> m >> n;
-
     for(size_t i = 0; i < n; ++i) {
         int tmp;
         std::cin >> tmp;
@@ -26,9 +27,11 @@ int main()
 #else
     caches::IdealCache<int> ideal{m};
     ideal.setBuffer(pages);
+
     for(const auto& i : pages) {
         ideal.lookup_update(i);
     }
+
     std::cout << ideal.getHits() << std::endl;
 #endif
     return 0;

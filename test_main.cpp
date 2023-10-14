@@ -35,6 +35,7 @@ protected:
 
     void createRandomData(size_t num)
     {
+        pages.clear();
         num_pages = num;
         std::random_device rd;
         std::mt19937 gen(rd());

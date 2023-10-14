@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <list>
+#include <map>
 
 namespace caches {
 template<typename KeyT = int>
@@ -13,86 +14,78 @@ class IdealCache {
     size_t hits{0};
     size_t cache_size{0};
     std::unordered_set<KeyT> hash;
-    std::unordered_map<KeyT, size_t> input_hash;
-    std::list<KeyT> cache;
-    std::vector<KeyT> input_buffer, future_window;
+    std::map<KeyT, std::list<size_t>*> input_hash;
+    std::vector<KeyT> input_buffer;
+    std::map<size_t, KeyT> cache_map;
 
-    bool full(const std::list<KeyT>& list) const {return (list.size() == cache_size);}
-    void updateWindow() {
-        future_window = {std::begin(input_buffer), std::begin(input_buffer)+10};
-    }
-    void updateMap() { //Keys with minimal indexes
-        input_hash.clear();
-        for(auto i = 0; i < future_window.size(); ++i) {
-            if(input_hash.find(future_window[i]) == input_hash.end()) {
-                input_hash.emplace(future_window[i], i);
+    bool full() const {return (cache_map.size() == cache_size);}
+
+    void initFutureHash() {
+        for(auto i = 0; i < input_buffer.size(); ++i) {
+            if(input_hash.find(input_buffer[i]) == input_hash.end()) {
+                input_hash.emplace(input_buffer[i], new std::list<size_t>(1, i));
+            }
+            else {
+                input_hash.at(input_buffer[i])->emplace_back(i);
             }
         }
     }
+
+    void updateFutureHash(KeyT key) {
+        input_hash.at(key)->pop_front();
+        if(input_hash.at(input_buffer.front())->empty()) {
+            input_hash.erase(input_buffer.front());
+        }
+        input_buffer.erase(std::begin(input_buffer));
+    }
+
 public:
     IdealCache() = default;
-    IdealCache(size_t size): cache_size(size) {}
+    IdealCache(size_t size): cache_size(2*size) {}
     IdealCache(const std::vector<KeyT>& buffer): input_buffer(buffer) {}
 
     void setBuffer(std::vector<KeyT>& buffer) {
+        input_buffer.clear();
         input_buffer = buffer;
-        updateWindow();
-        updateMap();
+        initFutureHash();
     }
     size_t getHits() const {return hits;}
 
     void setSize(size_t size) {
-        cache_size = size;
+        cache_size = 2*size;
     }
 
     void lookup_update(KeyT key) {
-        if(input_buffer.empty()) return;
+        if(input_buffer.empty()) return;        
+        auto key_index = input_hash.at(key)->front();
+        updateFutureHash(key);
+        if(hash.find(key) != hash.end()) {
+            hits++;
+            cache_map.erase(key_index);
+            if(input_hash.find(key) == input_hash.end())
+                hash.erase(key);
 
-        input_buffer.erase(std::begin(input_buffer));
-        updateWindow();
-        updateMap();
-        if(full(cache)) {
-            if(hash.find(key) != hash.end()) {
-                hits++;
-            }
             else {
-                if(input_hash.find(key) == input_hash.end()) {
+                cache_map[input_hash.at(key)->front()] = key;
+            }
+        }
+        if(full()) {
+            if(hash.find(key) == hash.end()) {
+                if(input_hash.find(key) == input_hash.end()) { //If buffer doesn't contains key anymore
                     return;
                 }
-                size_t max_index = 0;
-                auto max_element_it = std::begin(cache);
+                auto max_index = cache_map.rbegin();
+                hash.erase(max_index->second);
+                cache_map.erase(max_index->first);
+                cache_map.emplace(input_hash.at(key)->front(), key);
+                hash.emplace(key);
 
-                for(auto it = cache.begin(); it != cache.end(); ++it) { //Replacing the farthest key in the input_buffer
-                    if(input_hash.find(*it) == input_hash.end()) {
-                        hash.erase(*it);
-                        *it = key;
-                        hash.emplace(key);
-                        return;
-                    }
-                    else {
-                        if(input_hash[*it] > max_index) {
-                            max_index = input_hash[*it];
-                            max_element_it = it;
-                        }
-                    }
-                }
-                for (const auto& [lkey, value] : input_hash) {
-                    if (value == max_index) {
-                        hash.erase(lkey);
-                        *max_element_it = key;
-                        hash.emplace(key);
-                        return;
-                    }
-                }
             }
         }
         else {
-            if(hash.find(key) != hash.end()) {
-                hits++;
-            }
-            else {
-                cache.emplace_back(key);
+            if(hash.find(key) == hash.end() && input_hash.find(key) != input_hash.end()) {
                 hash.emplace(key);
+                cache_map[input_hash.at(key)->front()] = key;
             }
         }
         return;
