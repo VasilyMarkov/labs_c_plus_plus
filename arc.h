@@ -3,7 +3,7 @@
 #include <iostream>
 #include <list>
 #include <unordered_map>
-
+#include <algorithm>
 namespace caches {
 
 template <typename T, typename KeyT = int>
@@ -30,6 +30,24 @@ private:
 
     void move(buffer& src, buffer& dst, KeyT key) {
         auto test = src.hash[key];
+        auto adr_test = test;
+        auto it = std::find(src.list.begin(), src.list.end(), key);
+        auto it_50 = std::find(mfu.list.begin(), mfu.list.end(), 50);
+//        bool result = (adr_test == it);
+//        std::cout << "t" << std::endl;
+
+//        std::cout << &it << std::endl;
+
+//        bool invalid = false;
+//        for(auto it = std::begin(src.list); it != std::end(src.list); ++it) {
+//            if(test == it) {
+//                invalid = true;
+//            }
+//        }
+//        if (!invalid) {
+//            std::cout << "err";
+//        }
+//        std::cout << std::endl;
         src.list.erase(test);
 
         if(full(dst.list)) {
@@ -43,7 +61,10 @@ private:
         else {
             auto old_top_key = dst.list.front();
             dst.list.emplace_front(key);
+            auto it_50 = std::find(mfu.list.begin(), mfu.list.end(), 50);
+            dst.hash.erase(key);
             dst.hash.emplace(key, dst.list.begin());
+//            dst.hash.emplace(key, dst.list.front());
             dst.hash.emplace(old_top_key, std::next(dst.list.begin(), 1));
         }
     }
@@ -59,7 +80,7 @@ private:
             mfu.hash.erase(lfu);
         }
     }
-    void cacheConsistency() const { //Warning: very slow.
+    void cacheConsistency() const {
         auto checkCache {[=](const buffer& cache)
             {
                 if(cache.list.size() != cache.hash.size()) {
@@ -91,6 +112,7 @@ private:
 public:
     ARC():cache_size(0) {}
     ARC(size_t size): cache_size(size) {}
+    std::vector<KeyT> buffer1;
     void setSize(size_t size) {cache_size = size;}
     size_t getHits() const {return hits;}
     size_t getCount() const {return cnt;}
@@ -149,6 +171,7 @@ public:
             mru.hash.emplace(key, mru.list.begin());
         }
         if(check) cacheConsistency();
+        cnt++;
     }
 
     void clear() {
@@ -157,16 +180,7 @@ public:
         mru_ghost.clear();
         mfu_ghost.clear();
         hits = 0;
-    }
-
-    void print() const {
-        std::cout << "Hits: " << hits << std::endl;
-        std::cout << "MRU size: " << mru.list.size() << std::endl;
-        std::cout << "MFU size: " << mfu.list.size() << std::endl;
-        std::cout << "MRU ghost size: " << mfu_ghost.list.size() << std::endl;
-        std::cout << "MFU ghost size: " << mru_ghost.list.size() << std::endl;
-        std::cout << "p : " << p << std::endl;
-        std::cout << "==========================================" << std::endl;
+        p = 0;
     }
 };
 
