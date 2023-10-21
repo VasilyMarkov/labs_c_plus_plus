@@ -30,24 +30,6 @@ private:
 
     void move(buffer& src, buffer& dst, KeyT key) {
         auto test = src.hash[key];
-        auto adr_test = test;
-        auto it = std::find(src.list.begin(), src.list.end(), key);
-        auto it_50 = std::find(mfu.list.begin(), mfu.list.end(), 50);
-//        bool result = (adr_test == it);
-//        std::cout << "t" << std::endl;
-
-//        std::cout << &it << std::endl;
-
-//        bool invalid = false;
-//        for(auto it = std::begin(src.list); it != std::end(src.list); ++it) {
-//            if(test == it) {
-//                invalid = true;
-//            }
-//        }
-//        if (!invalid) {
-//            std::cout << "err";
-//        }
-//        std::cout << std::endl;
         src.list.erase(test);
 
         if(full(dst.list)) {
@@ -56,6 +38,7 @@ private:
         }
         if(dst.list.empty()) {
             dst.list.emplace_front(key);
+            dst.hash.erase(key);
             dst.hash.emplace(key, dst.list.begin());
         }
         else {
@@ -64,7 +47,6 @@ private:
             auto it_50 = std::find(mfu.list.begin(), mfu.list.end(), 50);
             dst.hash.erase(key);
             dst.hash.emplace(key, dst.list.begin());
-//            dst.hash.emplace(key, dst.list.front());
             dst.hash.emplace(old_top_key, std::next(dst.list.begin(), 1));
         }
     }
@@ -112,7 +94,6 @@ private:
 public:
     ARC():cache_size(0) {}
     ARC(size_t size): cache_size(size) {}
-    std::vector<KeyT> buffer1;
     void setSize(size_t size) {cache_size = size;}
     size_t getHits() const {return hits;}
     size_t getCount() const {return cnt;}
