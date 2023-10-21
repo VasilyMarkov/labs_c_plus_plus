@@ -44,7 +44,6 @@ private:
         else {
             auto old_top_key = dst.list.front();
             dst.list.emplace_front(key);
-            auto it_50 = std::find(mfu.list.begin(), mfu.list.end(), 50);
             dst.hash.erase(key);
             dst.hash.emplace(key, dst.list.begin());
             dst.hash.emplace(old_top_key, std::next(dst.list.begin(), 1));
