@@ -71,7 +71,7 @@ public:
         }
         if(full()) {
             if(hash.find(key) == hash.end()) {
-                if(input_hash.find(key) == input_hash.end()) { //If buffer doesn't contains key anymore
+                if(input_hash.find(key) == input_hash.end()) {
                     return;
                 }
                 auto max_index = cache_map.rbegin();

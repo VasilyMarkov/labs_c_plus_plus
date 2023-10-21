@@ -68,7 +68,6 @@ int main()
 #ifdef ARC_DEF
     caches::ARC<int> arc{m};
     auto test {[&](std::vector<int>& pages){
-        print(pages);
         for(const auto& i : pages) {
             arc.lookup_update(i);
         }
