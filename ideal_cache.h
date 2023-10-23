@@ -41,7 +41,7 @@ class IdealCache {
 
 public:
     IdealCache() = default;
-    IdealCache(size_t size): cache_size(2*size) {}
+    IdealCache(size_t size): cache_size(size) {}
     IdealCache(const std::vector<KeyT>& buffer): input_buffer(buffer) {}
 
     void setBuffer(std::vector<KeyT>& buffer) {
@@ -52,7 +52,7 @@ public:
     size_t getHits() const {return hits;}
 
     void setSize(size_t size) {
-        cache_size = 2*size;
+        cache_size = size;
     }
 
     void lookup_update(KeyT key) {
