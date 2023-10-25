@@ -50,12 +50,12 @@ void print(const std::vector<int>& data) {
     }
     std::cout << std::endl;
 }
+//#define LOOP
 
-using namespace std::chrono;
 int main()
 {
     std::vector<int> pages;
-
+#ifndef LOOP
     size_t m, n;
     std::cin >> m >> n;
     for(size_t i = 0; i < n; ++i) {
@@ -64,9 +64,13 @@ int main()
         pages.push_back(tmp);
     }
 
+#else
+    size_t m = 4;
+#endif
 
 #ifdef ARC_DEF
-    caches::ARC<int> arc{m};
+    #ifndef LOOP
+    caches::ARC<int> arc{m/2};
     auto test {[&](std::vector<int>& pages){
         for(const auto& i : pages) {
             arc.lookup_update(i);
@@ -76,6 +80,24 @@ int main()
         arc.clear();
     }};
     test(pages);
+    #else
+        for(auto i = 0; i < 1000; ++i) {
+            std::vector<int> pages;
+            createRandomData(pages, 20, 2);
+            caches::ARC<int> arc(m/2);
+            caches::IdealCache<int> ideal{m};
+            ideal.setBuffer(pages);
+            print(pages);
+            for(const auto& i : pages) {
+                arc.lookup_update(i);
+//                ideal.lookup_update(i);
+            }
+
+//            std::cout << arc.getHits() << ' ' << ideal.getHits() << std::endl;
+//            if(arc.getHits() > ideal.getHits()) print(pages);
+        }
+        std::cout << "End" << std::endl;
+    #endif
 #else
     caches::IdealCache<int> ideal{m};
     ideal.setBuffer(pages);

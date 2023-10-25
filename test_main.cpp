@@ -163,6 +163,16 @@ TEST_F(CacheTest, consistCheck) {
                 }
             }
         }
+        for(auto size = 10, data_size = size*2; size < 100; size += 10, data_size = size*2) {
+            for(auto i = 0; i < 1000; ++i) {
+                for(auto mode = 0; mode < 4; ++mode) {
+                    createRandomData(data_size, mode);
+                    for(const auto& i : pages) {
+                        ic.lookup_update(i);
+                    }
+                }
+            }
+        }
     }
     catch (...) {
         std::cout << "fail" << std::endl;
@@ -170,6 +180,20 @@ TEST_F(CacheTest, consistCheck) {
 
     }
 }
+
+TEST_F(CacheTest, checkMFU) {
+    std::vector<int> pages = {1, 2, 3, 4, 5, 6, 7, 2};
+    ic.setSize(6);
+    arc.setSize(6);
+    ic.setBuffer(pages);
+    for(const auto& i : pages) {
+        ic.lookup_update(i);
+        arc.lookup_update(i);
+    }
+    std::cout << ic.getHits() << ' ' << arc.getHits() << std::endl;
+    EXPECT_EQ(ic.getHits(), arc.getHits());
+}
+
 
 //TEST_F(CacheTest, perfIdealTest) {
 //    createRandomData(1e3);
