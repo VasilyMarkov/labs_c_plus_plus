@@ -28,23 +28,6 @@ private:
     buffer mru, mfu, mru_ghost, mfu_ghost;
 
     void move(buffer& src, buffer& dst, KeyT key) {
-//        auto test = src.hash[key];
-//        src.list.erase(test);
-//        src.hash.erase(key);
-//        if(full(dst.list)) {
-//            dst.hash.erase(dst.list.back());
-//            dst.list.pop_back();
-//        }
-//        if(dst.list.empty()) {
-//            dst.list.emplace_front(key);
-//            dst.hash[key] = dst.list.begin();
-//        }
-//        else {
-//            auto old_top_key = dst.list.front();
-//            dst.list.emplace_front(key);
-//            dst.hash[key] = dst.list.begin();
-//            dst.hash.emplace(old_top_key, std::next(dst.list.begin(), 1));
-//        }
         src.list.erase(src.hash[key]);
         src.hash.erase(key);
         dst.list.emplace_front(key);
