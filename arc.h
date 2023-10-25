@@ -12,8 +12,7 @@ private:
     size_t cache_size{0};
     size_t hits{0};
     double p{0};
-    size_t cnt{0};
-    bool check = false;
+    bool odd_size = false;
     using list_t = typename std::list<KeyT>;
     using list_it = typename std::list<KeyT>::iterator;
     using hash_t = typename std::unordered_map<KeyT, list_it>;
@@ -51,12 +50,9 @@ private:
     bool full(const list_t& list) const {return (list.size() == cache_size);}
 public:
     ARC():cache_size(0) {}
-    ARC(size_t size): cache_size(size) {}
+    ARC(size_t size): cache_size(size/2) {if (cache_size % 2 != 0) odd_size = true;}
     void setSize(size_t size) {cache_size = size;}
     size_t getHits() const {return hits;}
-    size_t getCount() const {return cnt;}
-    int getP() const {return p;}
-    void checkArc(bool flag) {check = flag;}
     void lookup_update(int key)
     {
         if(mru.hash.find(key) != mru.hash.end()) {
@@ -93,7 +89,9 @@ public:
             }
             else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
                 if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() >= cache_size) {
-                    if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() == 2*cache_size) {
+                    auto size_limit = 2*cache_size;
+                    if (odd_size) size_limit++;
+                    if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() == size_limit) {
                         mfu_ghost.hash.erase(mfu_ghost.list.back());
                         mfu_ghost.list.pop_back();
                     }
@@ -103,7 +101,6 @@ public:
             mru.list.emplace_front(key);
             mru.hash.emplace(key, mru.list.begin());
         }
-        cnt++;
     }
 
     void clear() {
