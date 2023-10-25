@@ -28,24 +28,35 @@ private:
     buffer mru, mfu, mru_ghost, mfu_ghost;
 
     void move(buffer& src, buffer& dst, KeyT key) {
-        auto test = src.hash[key];
-        src.list.erase(test);
+//        auto test = src.hash[key];
+//        src.list.erase(test);
+//        src.hash.erase(key);
+//        if(full(dst.list)) {
+//            dst.hash.erase(dst.list.back());
+//            dst.list.pop_back();
+//        }
+//        if(dst.list.empty()) {
+//            dst.list.emplace_front(key);
+//            dst.hash[key] = dst.list.begin();
+//        }
+//        else {
+//            auto old_top_key = dst.list.front();
+//            dst.list.emplace_front(key);
+//            dst.hash[key] = dst.list.begin();
+//            dst.hash.emplace(old_top_key, std::next(dst.list.begin(), 1));
+//        }
+        src.list.erase(src.hash[key]);
         src.hash.erase(key);
-        if(full(dst.list)) {
-            dst.hash.erase(dst.list.back());
-            dst.list.pop_back();
-        }
-        if(dst.list.empty()) {
-            dst.list.emplace_front(key);
-            dst.hash[key] = dst.list.begin();
-        }
-        else {
-            auto old_top_key = dst.list.front();
-            dst.list.emplace_front(key);
-            dst.hash[key] = dst.list.begin();
-            dst.hash.emplace(old_top_key, std::next(dst.list.begin(), 1));
-        }
+        dst.list.emplace_front(key);
+        dst.hash.emplace(key, dst.list.begin());
     }
+
+    void moveTop(buffer& src, KeyT key) {
+        src.list.erase(src.hash[key]);
+        src.list.emplace_front(key);
+        src.hash[key] = src.list.begin();
+    }
+
     void toGhost(const KeyT i, const double p) {
         if(!mru.list.empty() && ((mru.list.size() > p) || ((mfu_ghost.hash.find(i) != mfu_ghost.hash.end()) && (p == mru.list.size())))) {
             move(mru, mru_ghost, mru.list.back());
@@ -71,7 +82,7 @@ public:
         }
         else if(mfu.hash.find(key) != mfu.hash.end()) {
             hits++;
-            move(mfu, mfu, key);
+            moveTop(mfu, key);
         }
         else if(mru_ghost.hash.find(key) != mru_ghost.hash.end()) {
             hits++;
