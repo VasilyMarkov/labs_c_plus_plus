@@ -9,14 +9,14 @@
 #include <map>
 
 namespace caches {
-template<typename KeyT = int>
+template<typename T, typename KeyT = int>
 class IdealCache {
     size_t hits{0};
     size_t cache_size{0};
-    std::unordered_set<KeyT> hash;
     std::map<KeyT, std::list<size_t>*> input_hash;
     std::vector<KeyT> input_buffer;
-    std::map<size_t, KeyT> cache_map;
+    std::unordered_set<KeyT> hash;
+    std::map<size_t, std::pair<KeyT, T>> cache_map;
 
     bool full() const {return (cache_map.size() == cache_size);}
 
@@ -55,7 +55,7 @@ public:
         cache_size = size;
     }
 
-    void lookup_update(KeyT key) {
+    template <typename F> void lookup_update(KeyT key, F slow_get_page) {
         if(input_buffer.empty()) return;        
         auto key_index = input_hash.at(key)->front();
         updateFutureHash(key);
@@ -66,7 +66,7 @@ public:
                 hash.erase(key);
 
             else {
-                cache_map[input_hash.at(key)->front()] = key;
+                cache_map[input_hash.at(key)->front()] = std::make_pair(key, slow_get_page(key));
             }
         }
         if(full()) {
@@ -75,9 +75,9 @@ public:
                     return;
                 }
                 auto max_index = cache_map.rbegin();
-                hash.erase(max_index->second);
+                hash.erase(max_index->second.first);
                 cache_map.erase(max_index->first);
-                cache_map.emplace(input_hash.at(key)->front(), key);
+                cache_map.emplace(input_hash.at(key)->front(), std::make_pair(key, slow_get_page(key)));
                 hash.emplace(key);
 
             }
@@ -85,7 +85,7 @@ public:
         else {
             if(hash.find(key) == hash.end() && input_hash.find(key) != input_hash.end()) {
                 hash.emplace(key);
-                cache_map[input_hash.at(key)->front()] = key;
+                cache_map[input_hash.at(key)->front()] = std::make_pair(key, slow_get_page(key));
             }
         }
         return;
