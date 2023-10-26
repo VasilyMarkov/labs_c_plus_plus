@@ -50,6 +50,8 @@ void print(const std::vector<int>& data) {
     }
     std::cout << std::endl;
 }
+
+int slow_get_page_int(int key) { return key; }
 //#define LOOP
 
 int main()
@@ -65,15 +67,15 @@ int main()
     }
 
 #else
-    size_t m = 4;
+    size_t m = 20;
 #endif
 
 #ifdef ARC_DEF
     #ifndef LOOP
-    caches::ARC<int> arc{m/2};
+    caches::ARC<int> arc{m};
     auto test {[&](std::vector<int>& pages){
         for(const auto& i : pages) {
-            arc.lookup_update(i);
+            arc.lookup_update(i, slow_get_page_int);
         }
         std::cout << arc.getHits() << std::endl;
 
@@ -81,20 +83,20 @@ int main()
     }};
     test(pages);
     #else
-        for(auto i = 0; i < 1000; ++i) {
+        for(auto i = 0; i < 10000; ++i) {
             std::vector<int> pages;
-            createRandomData(pages, 20, 2);
-            caches::ARC<int> arc(m/2);
+            createRandomData(pages, m*4, 3);
+            caches::ARC<int> arc(m);
             caches::IdealCache<int> ideal{m};
             ideal.setBuffer(pages);
-            print(pages);
+//            print(pages);
             for(const auto& i : pages) {
                 arc.lookup_update(i);
-//                ideal.lookup_update(i);
+                ideal.lookup_update(i);
             }
 
 //            std::cout << arc.getHits() << ' ' << ideal.getHits() << std::endl;
-//            if(arc.getHits() > ideal.getHits()) print(pages);
+            if(arc.getHits() > ideal.getHits()) print(pages);
         }
         std::cout << "End" << std::endl;
     #endif

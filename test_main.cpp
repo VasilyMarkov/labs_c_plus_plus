@@ -9,7 +9,7 @@
 namespace my {
 namespace project {
 namespace {
-
+int slow_get_page_int(int key) { return key; }
 class CacheTest : public ::testing::Test {
 protected:
     size_t num_pages = 1e5;
@@ -158,7 +158,7 @@ TEST_F(CacheTest, consistCheck) {
                 for(auto mode = 0; mode < 4; ++mode) {
                     createRandomData(data_size, mode);
                     for(const auto& i : pages) {
-                        arc.lookup_update(i);
+                        arc.lookup_update(i, slow_get_page_int);
                     }
                 }
             }
@@ -188,7 +188,7 @@ TEST_F(CacheTest, checkMFU) {
     ic.setBuffer(pages);
     for(const auto& i : pages) {
         ic.lookup_update(i);
-        arc.lookup_update(i);
+        arc.lookup_update(i, slow_get_page_int);
     }
     std::cout << ic.getHits() << ' ' << arc.getHits() << std::endl;
     EXPECT_EQ(ic.getHits(), arc.getHits());
