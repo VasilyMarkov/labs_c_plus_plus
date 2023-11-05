@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/googletest-build",
+		"source" : "/home/vasily/usr/phystech/C++/labs/build-cache-Desktop-Debug/_deps/googletest-src"
+	}
+}
