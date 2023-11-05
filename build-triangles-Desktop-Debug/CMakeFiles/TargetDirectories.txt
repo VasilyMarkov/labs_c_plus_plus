@@ -1,0 +1,3 @@
+/home/vasily/usr/phystech/C++/labs/build-triangles-Desktop-Debug/CMakeFiles/triangles.dir
+/home/vasily/usr/phystech/C++/labs/build-triangles-Desktop-Debug/CMakeFiles/edit_cache.dir
+/home/vasily/usr/phystech/C++/labs/build-triangles-Desktop-Debug/CMakeFiles/rebuild_cache.dir
