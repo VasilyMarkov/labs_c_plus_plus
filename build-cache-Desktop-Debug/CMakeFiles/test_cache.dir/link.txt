@@ -1,1 +1,0 @@
-/usr/bin/g++ -g CMakeFiles/test_cache.dir/test_main.cpp.o -o test_cache  lib/libgtest_main.a lib/libgmock_main.a lib/libgmock.a lib/libgtest.a 
