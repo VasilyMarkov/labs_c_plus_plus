@@ -28,11 +28,13 @@ void sortingPoints(const std::vector<T>& x_axis, const std::vector<T>& y_axis, c
         auto max = *std::max_element(std::begin(buf), std::end(buf));
         map.emplace(min, n/3);
         map.emplace(max, n/3);
+
     }};
 
     for(auto i = 0, cnt = 1; i < x_axis.size(); ++i) {
         x_buf[i % 3] = x_axis[i];
         y_buf[i % 3] = y_axis[i];
+        z_buf[i % 3] = z_axis[i];
         if(!(cnt % 3)) {
             createSortPoints(x_sort, x_buf, cnt);
             createSortPoints(y_sort, y_buf, cnt);
@@ -46,25 +48,27 @@ void sortingPoints(const std::vector<T>& x_axis, const std::vector<T>& y_axis, c
 namespace intersect {
 template <typename T, typename U>
 void intersectByAxis(std::multimap<T, U>& points, std::vector<U>& triangles_index) {
-    std::unordered_set<size_t> remove;
+    std::unordered_set<U> removed;
+    std::unordered_set<U> index;
     auto this_it = std::begin(points);
     auto other_it = std::next(std::begin(points));
     while(this_it != std::end(points)) {
-        if(remove.find(this_it->second) != std::end(remove)) {
+        if(removed.find(this_it->second) != std::end(removed)) {
             points.erase(this_it);
-            remove.erase(this_it->second);
+            removed.erase(this_it->second);
             if(points.size() == 0)
                 break;
-            ++this_it;
+            this_it = std::begin(points);
+            other_it = std::next(std::begin(points));
             continue;
         }
         if(other_it->second != this_it->second) {
-            triangles_index.push_back(this_it->second);
-            triangles_index.push_back(other_it->second);
+            index.emplace(this_it->second);
+            index.emplace(other_it->second);
             points.erase(this_it);
             points.erase(other_it);
-            remove.emplace(this_it->second);
-            remove.emplace(other_it->second);
+            removed.emplace(this_it->second);
+            removed.emplace(other_it->second);
             this_it = std::begin(points);
             other_it = std::next(std::begin(points));
         }
@@ -80,6 +84,8 @@ void intersectByAxis(std::multimap<T, U>& points, std::vector<U>& triangles_inde
         if(other_it == std::end(points))
             ++this_it;
     }
+//    std::copy(std::begin(index), std::end(index), std::begin(triangles_index));
+    std::copy(index.begin(), index.end(), std::back_inserter(triangles_index));
     return;
 }
 

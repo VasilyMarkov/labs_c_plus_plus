@@ -21,7 +21,7 @@ void print(const std::multimap<T, U>& vec) {
 }
 
 int main() {
-    std::vector<int> triangles = {0,0,0, 3,0,0, 3,3,0, 1,0,0, 4,0,0, 4,3,0};
+    std::vector<int> triangles = {3,0,0, 0,3,0, 0,0,3, 2,0,0, 0,4,0, 0,0,2};
     std::vector<int> x_axis, y_axis, z_axis;
 
     std::multimap<int, size_t> x_points, y_points, z_points;
@@ -36,7 +36,6 @@ int main() {
 
     auto x_y_intersect{intersect::axisesCompare(x_triangles, y_triangles)};
     auto intersect{intersect::axisesCompare(x_y_intersect, z_triangles)};
-//    print(x_y_intersect);
     print(intersect);
     return 0;
 }
