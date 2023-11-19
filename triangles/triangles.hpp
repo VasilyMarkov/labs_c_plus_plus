@@ -2,8 +2,8 @@
 #include <vector>
 #include <map>
 #include <unordered_set>
-
 namespace prep {
+
 template <typename T>
 void divideByAxis(const std::vector<T>& triangles, std::vector<T>& x_axis, std::vector<T>& y_axis, std::vector<T>& z_axis) {
 

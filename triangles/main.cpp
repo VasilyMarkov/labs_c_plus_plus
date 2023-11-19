@@ -3,7 +3,7 @@
 #include <map>
 #include <algorithm>
 #include <unordered_set>
-#include "triangles.hpp"
+#include "linal.hpp"
 
 template <typename T>
 void print(const std::vector<T>& vec) {
@@ -20,22 +20,15 @@ void print(const std::multimap<T, U>& vec) {
     }
 }
 
+
+
 int main() {
-    std::vector<int> triangles = {3,0,0, 0,3,0, 0,0,3, 2,0,0, 0,4,0, 0,0,2};
-    std::vector<int> x_axis, y_axis, z_axis;
-
-    std::multimap<int, size_t> x_points, y_points, z_points;
-
-    prep::divideByAxis(triangles, x_axis, y_axis, z_axis);
-    prep::sortingPoints(x_axis, y_axis, z_axis, x_points, y_points, z_points);
-
-    std::vector<size_t> x_triangles, y_triangles, z_triangles;
-    intersect::intersectByAxis(x_points, x_triangles);
-    intersect::intersectByAxis(y_points, y_triangles);
-    intersect::intersectByAxis(z_points, z_triangles);
-
-    auto x_y_intersect{intersect::axisesCompare(x_triangles, y_triangles)};
-    auto intersect{intersect::axisesCompare(x_y_intersect, z_triangles)};
-    print(intersect);
+    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
+                               0,0,0, 0,2,0, 2,0,0};
+//    std::vector<int> points = {0,0,0, 0,-1,0, -1,0,0,
+//                               0,0,0, 0,2,0, 2,0,0};
+    auto triangles = createTriangles(points);
+    auto sep = triangles.at(0).separable_line_from(triangles.at(1));
+//    auto result = intersectTriangles(triangles);
     return 0;
 }

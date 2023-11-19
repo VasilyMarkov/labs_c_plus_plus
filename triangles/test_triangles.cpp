@@ -1,75 +1,185 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <random>
-#include "triangles.hpp"
+#include <optional>
+#include "linal.hpp"
 
 using namespace testing;
 enum class mode {
     nointersect,
-    intersect
+    intersect,
+    random
 };
 
 template <typename T>
-void print(const std::vector<T>& vec) {
+void print(const std::vector<T> vec) {
     for(auto const& i : vec) {
         std::cout << i << ' ';
     }
     std::cout << std::endl;
 }
 
-std::vector<int> generator(size_t n, mode mode) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::vector<int> points;
-    switch(mode) {
-        case mode::nointersect:
-            for(auto i = 0; i < n; ++i) {
-                points.insert(std::end(points), {i, 0, 0,
-                                                 0, i, 0,
-                                                 0, 0, i});
-            }
-        break;
-        case mode::intersect:
-            points.insert(std::end(points), {1, 0, 0,
-                                             0, 1, 0,
-                                             0, 0, 1});
-            for(auto i = 0; i < n-1; ++i) {
-                points.insert(std::end(points), {2, 0, i,
-                                                 0, 2, i,
-                                                 0, 0, i});
-            }
-        break;
-        default:
-        break;
+enum class distr_t {
+    uniform,
+    normal,
+    bernulli
+};
+
+class Generator {
+private:
+
+public:
+
+    void intersect(std::vector<int>& points, size_t n) const {
+        points.insert(std::end(points), {1, 0, 0,
+                                         0, 1, 0,
+                                         0, 0, 1});
+        for(auto i = 0; i < n-1; ++i) {
+            points.insert(std::end(points), {2, 0, i,
+                                             0, 2, i,
+                                             0, 0, i});
+        }
     }
 
-    return points;
+    void noIntersect(std::vector<int>& points, size_t n) const {
+        for(auto i = 1; i < n; ++i) {
+            points.insert(std::end(points), {i, 0, 0,
+                                             0, i, 0,
+                                             0, 0, i});
+        }
+    }
+    template <typename T>
+    void random(std::vector<T>& points, size_t n, distr_t distr) const {
+        switch(distr) {
+            case distr_t::uniform: {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                for(auto i = 0; i < n; ++i) {
+                    std::uniform_int_distribution<> distrib(-n/2, n/2);
+                    points.insert(std::end(points), {
+                        static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)),
+                        static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)),
+                        static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen))}
+                    );
+                }
+            }
+            break;
+            case distr_t::normal: {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                for(auto i = 0; i < n; ++i) {
+                    std::normal_distribution<> distrib(0, 10);
+                    points.insert(std::end(points), {
+                        distrib(gen), distrib(gen), distrib(gen),
+                        distrib(gen), distrib(gen), distrib(gen),
+                        distrib(gen), distrib(gen), distrib(gen)}
+                    );
+                }
+            }
+            break;
+            case distr_t::bernulli:
+            break;
+            default:
+            break;
+        }
+    }
+};
+
+
+TEST(Test, noValidTriangle_1) {
+    std::vector<int> points = {0,0,0, 0,0,0, 0,0,0,
+                               0,0,0, 0,0,0, 0,0,0};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST(Test, noValidTriangle_2) {
+    std::vector<int> points = {0,0,0, 0,1,0, 0,0,0,
+                               0,0,0, 0,2,0, 0,0,0};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST(Test, noIntersectTriangle2D_1) {
+    std::vector<int> points = {0,0,0, 1,0,0, 0,1,0,
+                               2,0,0, 0,2,0, 2,2,0};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST(Test, noIntersectTriangle2D_2) {
+    std::vector<int> points = {0,0,0, 0,1,0, 0,0,1,
+                               0,0,2, 0,3,0, 0,0,3};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST(Test, noIntersectTriangle3D_1) {
+    std::vector<int> points = {0,0,0, 0,1,0, 0,0,1,
+                               0,0,2, 1,0,2, 1,0,2};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST(Test, noIntersectTriangle3D_2) {
+    std::vector<int> points = {1,0,0, 0,1,0, 0,0,1,
+                               2,0,0, 0,2,0, 0,0,2};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_EQ(result, std::nullopt);
+}
+
+TEST(Test, intersectTriangle2D_1) {
+    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
+                               0,0,0, 0,2,0, 2,0,0};
+
+    auto result = intersectTriangles(createTriangles(points));
+//    EXPECT_THAT(result, ElementsAre(0, 1));
+}
+
+TEST(Test, intersectTriangle2D_2) {
+    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
+                               0,0,0, 0,-1,0, -1,0,0};
+
+    auto result = intersectTriangles(createTriangles(points));
+//    EXPECT_THAT(result, ElementsAre(0, 1));
+}
+
+TEST(Test, intersectTriangle3D_1) {
+    std::vector<int> points = {2,0,0, 0,2,0, 0,0,2,
+                               3,0,0, 0,3,0, 0,0,1};
+
+    auto result = intersectTriangles(createTriangles(points));
+//    EXPECT_THAT(result, ElementsAre(0, 1));
 }
 
 TEST(Test, TrianglesTest) {
-    size_t n = 3;
+    size_t n = 1e6;
 
-//    std::vector<int> triangles = {2,0,0, 0,2,0, 0,0,2, 3,0,0, 0,3,0, 0,0,3};
-    std::vector<int> triangles{generator(n, mode::intersect)};
-//    print(generator(n, mode::intersect));
-    std::vector<int> x_axis, y_axis, z_axis;
+    std::vector<int> input = {2,0,0, 0,2,0, 0,0,2,
+                              3,0,0, 0,3,0, 0,0,1,
+                              3,0,0, 0,3,0, 0,0,3};
 
-    std::multimap<int, size_t> x_points, y_points, z_points;
-
-    prep::divideByAxis(triangles, x_axis, y_axis, z_axis);
-    prep::sortingPoints(x_axis, y_axis, z_axis, x_points, y_points, z_points);
-
-    std::vector<size_t> x_triangles, y_triangles, z_triangles;
-    intersect::intersectByAxis(x_points, x_triangles);
-    intersect::intersectByAxis(y_points, y_triangles);
-    intersect::intersectByAxis(z_points, z_triangles);
-
-    auto x_y_intersect{intersect::axisesCompare(x_triangles, y_triangles)};
-    auto intersect{intersect::axisesCompare(x_y_intersect, z_triangles)};
-    print(intersect);
-    EXPECT_THAT(intersect, ElementsAre(1, 2, 3));
+    std::vector<double> points;
+    Generator generator;
+    generator.random(points, n, distr_t::uniform);
+    auto result = intersectTriangles(createTriangles(points));
+    if(result) {
+//        print(const_cast<std::vector<size_t>&>(result.value()));
+        std::cout << result.value().size() << std::endl;
+    }
+    else {
+        std::cout << "No intersection" << std::endl;
+    }
 //    EXPECT_THAT(x_y_intersect, ElementsAre(1, 2));
 }
+
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
