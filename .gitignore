@@ -73,6 +73,7 @@ Thumbs.db
 
 *.txt.user
 .vscode
+lingeo.hpp
 release
 googletest
 *.gitmodules
