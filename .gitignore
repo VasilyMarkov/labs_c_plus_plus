@@ -77,4 +77,5 @@ lingeo.hpp
 release
 googletest
 *.gitmodules
-
+test
+triangles/build
