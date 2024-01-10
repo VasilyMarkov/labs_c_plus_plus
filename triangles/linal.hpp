@@ -2,12 +2,12 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
-#include <assert.h>
 #include <array>
 #include <optional>
 #include <unordered_set>
 const float fit_tolerance  = 0.00001;
 const float inter_area_width = 100.0;
+
 
 struct Point2d {
 public:
@@ -164,8 +164,9 @@ public:
                 auto side = get_side(line3d, vPoint3d);
                 auto is_point_inside = point2.x <= line_point2.x && point2.x >= line_point1.x &&
                                        point2.y <= line_point2.y && point2.y >= line_point1.y;
-                if (side == side_t::on_line && is_point_inside)  //the point lies on the line but not on the side of the triangle itself
-                    sides.insert(side);
+                if (side == side_t::on_line && is_point_inside)
+//                    sides.insert(side);
+                    return true;
                 else if (side != side_t::on_line)
                     sides.insert(side);
             }

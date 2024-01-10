@@ -79,25 +79,12 @@ position checkRelativePosition(const std::vector<int>& dets) {
 
 int main() {
 #ifdef MY
-//    std::vector<int> points = {0,0,0, 0,1,0, 0,0,1,
-//                               0,0,2, 1,0,2, 1,0,3};
-//    std::vector<int> points = {2,0,0, 0,2,0, 0,0,2,
-//                               3,0,0, 0,3,0, 0,0,1};
-//    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
-//                               0,0,0, 0,1,0, 1,0,0};
-//    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
-//                               0,0,0, 0,-1,0, -1,0,0};
-    std::vector<int> points = {0,0,0, 1,0,0, 0,1,0,
-                               0,2,0, 1,2,0, 0,3,0};
+    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
+                               0,0,0, 0,-1,0, -1,0,0};
     auto triangles = createTriangles(points);
     auto result = triangles.at(0).separable_plane_from(triangles.at(1));
 
     std::cout << std::boolalpha << result << std::endl;
-     Point3d p1 = {1,0,0};
-     Point3d p2 = {1,1,0};
-     auto cross = Point3d::cross(p1, p2);
-     auto dot = Point3d::dot(p1, p2);
-//     std::cout << cross << dot << std::endl;
 #else
 //    std::vector<point_t> verts = {{0,0}, {1,0}, {0,1}};
 //    std::vector<point_t> verts1 = {{0,0}, {-1,0}, {0,-1}};

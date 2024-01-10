@@ -79,3 +79,4 @@ googletest
 *.gitmodules
 test
 triangles/build
+ParaCL
