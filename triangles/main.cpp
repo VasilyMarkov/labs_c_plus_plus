@@ -3,6 +3,9 @@
 #include <map>
 #include <algorithm>
 #include <unordered_set>
+#include <set>
+#include <chrono>
+
 
 #define MY
 
@@ -15,6 +18,14 @@
 template <typename T>
 void print(const std::vector<T>& vec) {
     for(auto const& i : vec) {
+        std::cout << i << ' ';
+    }
+    std::cout << std::endl;
+}
+
+template <typename T>
+void print(const std::set<T>& set) {
+    for(auto const& i : set) {
         std::cout << i << ' ';
     }
     std::cout << std::endl;
@@ -79,12 +90,20 @@ position checkRelativePosition(const std::vector<int>& dets) {
 
 int main() {
 #ifdef MY
-    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
-                               0,0,0, 0,-1,0, -1,0,0};
+    std::vector<int> points = {0,0,0, 1,0,0, 0,1,0,
+                               -1,-1,0, -1,4,0, 4,-1,0};
     auto triangles = createTriangles(points);
-    auto result = triangles.at(0).separable_plane_from(triangles.at(1));
+//    auto result = triangles.at(0).separable_plane_from(triangles.at(1));
+    triangles[0].print();
+    triangles[1].print();
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    auto result = intersectTriangles(triangles);
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
+//    if(result != std::nullopt)
+//        print(result.value());
+//    std::cout << std::boolalpha << result << std::endl;
 
-    std::cout << std::boolalpha << result << std::endl;
 #else
 //    std::vector<point_t> verts = {{0,0}, {1,0}, {0,1}};
 //    std::vector<point_t> verts1 = {{0,0}, {-1,0}, {0,-1}};

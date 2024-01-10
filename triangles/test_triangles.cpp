@@ -24,38 +24,43 @@ enum class distr_t {
     normal,
     bernulli
 };
-
+template <typename T>
 class Generator {
 private:
-
+    std::vector<T> points;
+    size_t size{0};
 public:
+    Generator(size_t n): size(n) {
+        intersect();
+    }
 
-    void intersect(std::vector<int>& points, size_t n) const {
+    std::vector<T> getPoints() const {return points;}
+
+    void intersect() {
         points.insert(std::end(points), {1, 0, 0,
                                          0, 1, 0,
                                          0, 0, 1});
-        for(auto i = 0; i < n-1; ++i) {
+        for(auto i = 0; i < size-1; ++i) {
             points.insert(std::end(points), {2, 0, i,
                                              0, 2, i,
                                              0, 0, i});
         }
     }
 
-    void noIntersect(std::vector<int>& points, size_t n) const {
-        for(auto i = 1; i < n; ++i) {
+    void noIntersect() {
+        for(auto i = 1; i < size; ++i) {
             points.insert(std::end(points), {i, 0, 0,
                                              0, i, 0,
                                              0, 0, i});
         }
     }
-    template <typename T>
-    void random(std::vector<T>& points, size_t n, distr_t distr) const {
+    void random(distr_t distr) {
         switch(distr) {
             case distr_t::uniform: {
                 std::random_device rd;
                 std::mt19937 gen(rd());
-                for(auto i = 0; i < n; ++i) {
-                    std::uniform_int_distribution<> distrib(-n/2, n/2);
+                for(auto i = 0; i < size; ++i) {
+                    std::uniform_int_distribution<> distrib(-size/2, size/2);
                     points.insert(std::end(points), {
                         static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)),
                         static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)), static_cast<double>(distrib(gen)),
@@ -67,7 +72,7 @@ public:
             case distr_t::normal: {
                 std::random_device rd;
                 std::mt19937 gen(rd());
-                for(auto i = 0; i < n; ++i) {
+                for(auto i = 0; i < size; ++i) {
                     std::normal_distribution<> distrib(0, 10);
                     points.insert(std::end(points), {
                         distrib(gen), distrib(gen), distrib(gen),
@@ -84,6 +89,23 @@ public:
         }
     }
 };
+
+class Environment : public ::testing::Environment {
+ public:
+  ~Environment() override {}
+
+  // Override this to define how to set up the environment.
+  void SetUp() override {
+      size_t n = 1e3;
+      Generator<int> generator(n);
+  }
+
+  // Override this to define how to tear down the environment.
+  void TearDown() override {}
+};
+
+size_t n = 1e3;
+Generator<int> generator(n);
 
 TEST(Test, noValidTriangle_1) {
     std::vector<int> points = {0,0,0, 0,0,0, 0,0,0,
@@ -105,7 +127,6 @@ TEST(Test, noIntersectTriangle2D) {
     std::vector<int> points = {0,2,0, 1,2,0, 0,3,0,
                                0,0,0, 1,0,0, 0,1,0};
     auto result = intersectTriangles(createTriangles(points));
-    auto result1 = createTriangles(points);
     EXPECT_EQ(result, std::nullopt);
 }
 
@@ -114,7 +135,6 @@ TEST(Test, noIntersectTriangle2D_1) {
                                0,2,0, 1,2,0, 0,3,0};
 
     auto result = intersectTriangles(createTriangles(points));
-    auto result1 = createTriangles(points);
     EXPECT_EQ(result, std::nullopt);
 }
 
@@ -198,17 +218,19 @@ TEST(Test, intersectSameTriangle3D) {
     EXPECT_THAT(result.value(), ElementsAre(0, 1));
 }
 
+TEST(Test, intersectFiveTriangles3D) {
+    std::vector<int> points = {1,0,0, 0,1,0, 0,0,1,
+                               1,0,0, 0,1,0, 0,0,1,
+                               1,0,0, 0,1,0, 0,0,1,
+                               1,0,0, 0,1,0, 0,0,1,
+                               1,0,0, 0,1,0, 0,0,1};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_THAT(result.value(), ElementsAre(0, 1, 2, 3, 4));
+}
+
 TEST(Test, TrianglesTest) {
-    size_t n = 1e2;
-
-    std::vector<int> input = {2,0,0, 0,2,0, 0,0,2,
-                              3,0,0, 0,3,0, 0,0,1,
-                              3,0,0, 0,3,0, 0,0,3};
-
-    std::vector<double> points;
-    points.reserve(n);
-    Generator generator;
-    generator.random(points, n, distr_t::uniform);
+    auto points = generator.getPoints();
     auto result = intersectTriangles(createTriangles(points));
     if(result) {
 //        print(const_cast<std::vector<size_t>&>(result.value()));
@@ -224,5 +246,6 @@ TEST(Test, TrianglesTest) {
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
+//    ::testing::AddGlobalTestEnvironment();
     return RUN_ALL_TESTS();
 }

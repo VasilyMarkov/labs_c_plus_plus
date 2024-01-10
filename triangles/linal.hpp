@@ -5,6 +5,7 @@
 #include <array>
 #include <optional>
 #include <unordered_set>
+#include <set>
 const float fit_tolerance  = 0.00001;
 const float inter_area_width = 100.0;
 
@@ -151,7 +152,7 @@ public:
             auto line_point2 = thisProj.vertices[(i+1) % verts.size()];
             auto line_point1 = thisProj.vertices[i % verts.size()];
             auto line  = line_point2-line_point1;
-            Point3d line3d = {line_point2.x, line_point1.y, 0};
+            Point3d line3d = {line.x, line.y, 0};
             for (size_t j = 0; j < anotherProj.vertices.size(); ++j) {
 
                 Point3d point_vec = {anotherProj.vertices[j % anotherProj.vertices.size()].x,
@@ -245,6 +246,12 @@ public:
         }
 
     }
+    void print() const {
+        std::cout << "Triangle: p1(" << vertices[0].x << ", " << vertices[0].y << ", " << vertices[0].z << "), p2("
+                  << vertices[1].x << ", " << vertices[1].y << ", " << vertices[1].z << "), p3("
+                  << vertices[2].x << ", " << vertices[2].y << ", " << vertices[2].z << ")" << std::endl;
+
+    }
 };
 
 template <typename T>
@@ -262,18 +269,17 @@ std::vector<Triangle3d> createTriangles(const std::vector<T>& points) {
     return triangles;
 }
 
-std::optional<std::vector<size_t>> intersectTriangles(const std::vector<Triangle3d>& triangles) {
-    std::vector<size_t> intersection;
-    intersection.reserve(triangles.size());
-     for(auto i = 0; i < triangles.size()-1; ++i) {
-        for(auto j = 1; j < triangles.size(); ++j) {
-            if (triangles.at(i).separable_plane_from(triangles.at(j)))
-            {
-                intersection.push_back(i);
-                intersection.push_back(j);
-                break;
+std::optional<std::set<size_t>> intersectTriangles(const std::vector<Triangle3d>& triangles) {
+    std::set<size_t> intersection;
+    size_t k = 0;
+     for(auto i = 0; i < triangles.size(); ++i) {
+        for(auto j = k; j < triangles.size(); ++j) {
+            if (triangles.at(i).separable_plane_from(triangles.at(j)) && i != j) {
+                intersection.emplace(i);
+                intersection.emplace(j);
             }
         }
+        k++;
     }
     if(!intersection.empty())
         return intersection;
