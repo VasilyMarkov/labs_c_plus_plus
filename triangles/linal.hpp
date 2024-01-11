@@ -4,11 +4,7 @@
 #include <cmath>
 #include <array>
 #include <optional>
-#include <unordered_set>
 #include <set>
-const float fit_tolerance  = 0.00001;
-const float inter_area_width = 100.0;
-
 
 struct Point2d {
 public:
