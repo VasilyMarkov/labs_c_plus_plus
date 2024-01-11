@@ -31,7 +31,9 @@ private:
     size_t size{0};
 public:
     Generator(size_t n): size(n) {
+//        noIntersect();
         intersect();
+//        intersect2D();
     }
 
     std::vector<T> getPoints() const {return points;}
@@ -46,7 +48,13 @@ public:
                                              0, 0, i});
         }
     }
-
+    void intersect2D() {
+        for(auto i = 1; i < size+1; ++i) {
+            points.insert(std::end(points), {i, 0, 0,
+                                             0, i, 0,
+                                             0, 0, 0});
+        }
+    }
     void noIntersect() {
         for(auto i = 1; i < size; ++i) {
             points.insert(std::end(points), {i, 0, 0,
@@ -232,14 +240,6 @@ TEST(Test, intersectFiveTriangles3D) {
 TEST(Test, TrianglesTest) {
     auto points = generator.getPoints();
     auto result = intersectTriangles(createTriangles(points));
-    if(result) {
-//        print(const_cast<std::vector<size_t>&>(result.value()));
-        std::cout << result.value().size() << std::endl;
-    }
-    else {
-        std::cout << "No intersection" << std::endl;
-    }
-//    EXPECT_THAT(x_y_intersect, ElementsAre(1, 2));
 }
 
 

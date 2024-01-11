@@ -146,7 +146,6 @@ public:
         auto anotherProj = another.triangleProjection();
         auto thisProj = triangleProjection();
         auto verts = thisProj.vertices;
-        std::vector<Point3d> cross_vector(3);
         std::unordered_set<side_t> sides;
         for (size_t i = 0; i < thisProj.vertices.size(); ++i) {
             auto line_point2 = thisProj.vertices[(i+1) % verts.size()];
@@ -156,17 +155,17 @@ public:
             for (size_t j = 0; j < anotherProj.vertices.size(); ++j) {
 
                 Point3d point_vec = {anotherProj.vertices[j % anotherProj.vertices.size()].x,
-                                  anotherProj.vertices[j % anotherProj.vertices.size()].y,
-                                  0};
+                                     anotherProj.vertices[j % anotherProj.vertices.size()].y,
+                                     0};
                 auto point2 = anotherProj.vertices[j % anotherProj.vertices.size()];
                 auto point1 = thisProj.vertices[i % thisProj.vertices.size()];
                 auto vPoint = point2 - point1;
                 Point3d vPoint3d = {vPoint.x, vPoint.y, 0};
                 auto side = get_side(line3d, vPoint3d);
+
                 auto is_point_inside = point2.x <= line_point2.x && point2.x >= line_point1.x &&
                                        point2.y <= line_point2.y && point2.y >= line_point1.y;
                 if (side == side_t::on_line && is_point_inside)
-//                    sides.insert(side);
                     return true;
                 else if (side != side_t::on_line)
                     sides.insert(side);
