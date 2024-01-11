@@ -42,12 +42,14 @@ int main() {
 
     size_t N{0};
     std::cin >> N;
-    std::vector<double> points(N);
-    for(auto i = 0; i < N; ++i) {
+    std::vector<double> points(N*9);
+    std::cout << N << std::endl;
+    for(auto i = 0; i < N*9; ++i) {
         auto tmp{0};
         std::cin >> tmp;
         points[i] = tmp;
     }
+    print(points);
     auto triangles = createTriangles(points);
     auto result = intersectTriangles(triangles);
     if(result != std::nullopt) {

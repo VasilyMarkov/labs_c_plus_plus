@@ -79,4 +79,5 @@ googletest
 *.gitmodules
 test
 triangles/build
+triangles/input
 ParaCL
