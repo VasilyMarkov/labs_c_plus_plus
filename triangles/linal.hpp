@@ -5,6 +5,10 @@
 #include <array>
 #include <optional>
 #include <set>
+#include <unordered_set>
+const float fit_tolerance  = 0.00001;
+const float inter_area_width = 100.0;
+
 
 struct Point2d {
 public:
@@ -171,7 +175,7 @@ public:
                 return true;
             }
             sides.clear();
-        }   
+        }
         return false;
     }
 

@@ -1,9 +1,12 @@
 # Triangles
 ## Build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-02
+cmake -S . -B release -DCMAKE_BUILD_TYPE=Release 
 
-cmake --build build
+cmake --build release
 
+or 
+
+./bld 
 ## Run
 ./triangles - programm
 
