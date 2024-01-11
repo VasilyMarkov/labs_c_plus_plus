@@ -6,4 +6,5 @@ cmake --build release
 
 ## Run
 ./triangles - programm
+
 ./tests - tests
