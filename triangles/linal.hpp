@@ -142,6 +142,7 @@ public:
         return side;
     }
 
+    //https://blackpawn.com/texts/pointinpoly/default.html Same Side Technique
     bool separable_line_from(const Triangle3d& another) const {
         auto anotherProj = another.triangleProjection();
         auto thisProj = triangleProjection();
@@ -221,6 +222,7 @@ public:
     bool vertexConsistency() const {
         return vertices[0] != vertices[1] && vertices[0] != vertices[2] && vertices[1] != vertices[2];
     }
+    //https://inria.hal.science/inria-00072100/file/RR-4488.pdf
     bool separable_plane_from(const Triangle3d& another) const {
         if (!(vertexConsistency() || another.vertexConsistency())) return false;
         std::vector<int> signs_tr1, signs_tr2;

@@ -31,9 +31,7 @@ private:
     size_t size{0};
 public:
     Generator(size_t n): size(n) {
-//        noIntersect();
         intersect();
-//        intersect2D();
     }
 
     std::vector<T> getPoints() const {return points;}
@@ -96,20 +94,6 @@ public:
             break;
         }
     }
-};
-
-class Environment : public ::testing::Environment {
- public:
-  ~Environment() override {}
-
-  // Override this to define how to set up the environment.
-  void SetUp() override {
-      size_t n = 1e3;
-      Generator<int> generator(n);
-  }
-
-  // Override this to define how to tear down the environment.
-  void TearDown() override {}
 };
 
 size_t n = 1e3;
@@ -237,15 +221,31 @@ TEST(Test, intersectFiveTriangles3D) {
     EXPECT_THAT(result.value(), ElementsAre(0, 1, 2, 3, 4));
 }
 
+TEST(Test, intersectClosedTriangles1) {
+    double eps = 1e-7;
+    std::vector<double> points = {0,0,0, 1,0,0, 0,1,0,
+                                  1+eps,0,0, 0,1,0, 1+eps,1,0};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_THAT(result, std::nullopt);
+}
+
+TEST(Test, intersectClosedTriangles2) {
+    double eps = 1e-7;
+    std::vector<double> points = {0,0,0, 1,0,0, 0,1,0,
+                                  -eps,0,0, -1,0,0, -eps,1,0};
+
+    auto result = intersectTriangles(createTriangles(points));
+    EXPECT_THAT(result, std::nullopt);
+}
+
 TEST(Test, TrianglesTest) {
     auto points = generator.getPoints();
     auto result = intersectTriangles(createTriangles(points));
 }
 
 
-
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
-//    ::testing::AddGlobalTestEnvironment();
     return RUN_ALL_TESTS();
 }
