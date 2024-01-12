@@ -80,5 +80,6 @@ googletest
 test
 triangles/build
 triangles/input
+triangles/tests
 triangles/triangles.hpp
 ParaCL
