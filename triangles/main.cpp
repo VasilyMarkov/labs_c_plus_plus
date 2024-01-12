@@ -17,9 +17,9 @@ void print(const std::vector<T>& vec) {
 template <typename T>
 void print(const std::set<T>& set) {
     for(auto const& i : set) {
-        std::cout << i << ' ';
+        std::cout << i << std::endl;
     }
-    std::cout << std::endl;
+//    std::cout << std::endl;
 }
 
 template <typename T, typename U>
@@ -35,7 +35,7 @@ int main() {
     std::cin >> N;
     std::vector<double> points(N*9);
     for(auto i = 0; i < N*9; ++i) {
-        auto tmp{0};
+        auto tmp{0.0};
         std::cin >> tmp;
         points[i] = tmp;
     }
