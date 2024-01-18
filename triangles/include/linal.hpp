@@ -90,6 +90,11 @@ struct Plane {
         c = a1 * b2 - b1 * a2;
         d = (- a * p1.x - b * p1.y - c * p1.z);
     }
+    friend std::ostream& operator<< (std::ostream& out, const Plane& p) {
+        out << "Plane: a = " << p.a << ", b = " << p.b 
+            << ", c = " << p.c << ", d = " << p.d << std::endl;
+        return out;
+    }
 };
 
 
@@ -222,19 +227,15 @@ public:
             return position::same_half_space;
         }
     }
-    bool vertexConsistency() const {
-        return vertices[0] != vertices[1] && vertices[0] != vertices[2] && vertices[1] != vertices[2];
-    }
 
     bool isPlane() const {
-        if (det3(vertices[0], vertices[1], vertices[2]) == 0) return false;
+        if(plane.a == 0 && plane.b == 0 && plane.c == 0 && plane.d == 0) return false;
         return true;
     }
 
     //https://inria.hal.science/inria-00072100/file/RR-4488.pdf
     bool separable_plane_from(const Triangle3d& another) const {
-        // if (!(vertexConsistency() || another.vertexConsistency())) return false;
-        if (isPlane()) return false;
+        if (!isPlane()) return false;
         std::vector<int> signs_tr1, signs_tr2;
         for (size_t i = 0; i < another.vertices.size(); i++) {
             auto det_this = det4(vertices[0], vertices[1], vertices[2], another.vertices[i]);
