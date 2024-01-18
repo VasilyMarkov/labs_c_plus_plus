@@ -2,7 +2,6 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-
 #include <chrono>
 #include "linal.hpp"
 
@@ -19,7 +18,6 @@ void print(const std::set<T>& set) {
     for(auto const& i : set) {
         std::cout << i << std::endl;
     }
-//    std::cout << std::endl;
 }
 
 template <typename T, typename U>
@@ -39,8 +37,8 @@ int main() {
         std::cin >> tmp;
         points[i] = tmp;
     }
-    auto triangles = createTriangles(points);
-    auto result = intersectTriangles(triangles);
+    const auto triangles = createTriangles(points);
+    const auto result = intersectTriangles(triangles);
     if(result != std::nullopt) {
         print(result.value());
     }

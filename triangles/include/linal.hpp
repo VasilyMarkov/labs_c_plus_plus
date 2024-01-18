@@ -117,12 +117,15 @@ public:
         vertices[0] = p1, vertices[1] = p2, vertices[2] = p3;
     }
 
-    float determinant(Point3d a, Point3d b, Point3d c, Point3d d) const {
-        auto abc_det = a.x*(b.y*c.z-b.z*c.y)-a.y*(b.x*c.z-b.z*c.x)+a.z*(b.x*c.y-b.y*c.x);
+    float det3(Point3d a, Point3d b, Point3d c) const {
+        auto det = a.x*(b.y*c.z-b.z*c.y)-a.y*(b.x*c.z-b.z*c.x)+a.z*(b.x*c.y-b.y*c.x);
+        return det;
+    }
 
-        auto abcd_det = (a.x-b.x)*(c.y*d.z-c.z*d.y)+(b.y-a.y)*(c.x*d.z-c.z*d.x)+(a.z-b.z)*(c.x*d.y-c.y*d.x)-
-                         a.x*(b.y*d.z-b.z*d.y)+a.y*(b.x*d.z-b.z*d.x)-a.z*(b.x*d.y-b.y*d.x)+abc_det;
-        return abcd_det;
+    float det4(Point3d a, Point3d b, Point3d c, Point3d d) const {
+        auto det = (a.x-b.x)*(c.y*d.z-c.z*d.y)+(b.y-a.y)*(c.x*d.z-c.z*d.x)+(a.z-b.z)*(c.x*d.y-c.y*d.x)-
+                         a.x*(b.y*d.z-b.z*d.y)+a.y*(b.x*d.z-b.z*d.x)-a.z*(b.x*d.y-b.y*d.x)+det3(a,b,c);
+        return det;
     }
 
     Point3d crossProduct(const Point3d& p1, const Point3d& p2) const {
@@ -222,13 +225,20 @@ public:
     bool vertexConsistency() const {
         return vertices[0] != vertices[1] && vertices[0] != vertices[2] && vertices[1] != vertices[2];
     }
+
+    bool isPlane() const {
+        if (det3(vertices[0], vertices[1], vertices[2]) == 0) return false;
+        return true;
+    }
+
     //https://inria.hal.science/inria-00072100/file/RR-4488.pdf
     bool separable_plane_from(const Triangle3d& another) const {
-        if (!(vertexConsistency() || another.vertexConsistency())) return false;
+        // if (!(vertexConsistency() || another.vertexConsistency())) return false;
+        if (isPlane()) return false;
         std::vector<int> signs_tr1, signs_tr2;
         for (size_t i = 0; i < another.vertices.size(); i++) {
-            auto det_this = determinant(vertices[0], vertices[1], vertices[2], another.vertices[i]);
-            auto det_another = determinant(another.vertices[0], another.vertices[1], another.vertices[2], vertices[i]);
+            auto det_this = det4(vertices[0], vertices[1], vertices[2], another.vertices[i]);
+            auto det_another = det4(another.vertices[0], another.vertices[1], another.vertices[2], vertices[i]);
             signs_tr1.push_back(det_this);
             signs_tr2.push_back(det_another);
         }
