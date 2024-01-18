@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <chrono>
 #include "linal.hpp"
+// #define TEST
 
 template <typename T>
 void print(const std::vector<T>& vec) {
@@ -27,8 +28,9 @@ void print(const std::multimap<T, U>& vec) {
     }
 }
 
-
 int main() {
+
+#ifndef TEST
     size_t N{0};
     std::cin >> N;
     std::vector<double> points(N*9);
@@ -42,5 +44,17 @@ int main() {
     if(result != std::nullopt) {
         print(result.value());
     }
+#else
+    std::vector<int> points = {0,0,0, 0,0,0, 0,0,0,
+                               1,0,0, 0,0,0, 0,0,0,
+                               1,0,0, 2,0,0, 3,0,0};
+    const auto triangles = createTriangles(points);
+    const auto result = intersectTriangles(triangles);
+    if(result != std::nullopt) {
+        print(result.value());
+    }
+    else std::cout << "nullopt" << std::endl;
+
+#endif
     return 0;
 }

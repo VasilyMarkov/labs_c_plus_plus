@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+cd build
+if [ $1 = "unit" ]; then
+    echo "Unit tests running..."
+    ./tests/unit_tests
+elif [ $1 = "full" ]; then
+    echo "Full tests running..."
+    ./tests/test_triangles
+fi
+

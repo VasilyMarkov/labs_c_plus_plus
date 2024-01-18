@@ -6,5 +6,5 @@ target_include_directories(triangles
     PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
-# include_directories(${CMAKE_SOURCE_DIR}/include)
+
 
