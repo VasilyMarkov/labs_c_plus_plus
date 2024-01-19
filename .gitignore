@@ -80,7 +80,7 @@ googletest
 test
 triangles/build
 triangles/input
-triangles/tests
 triangles/triangles.hpp
 triangles/graph.py
+triangles/tests/*.dat
 ParaCL

@@ -6,9 +6,12 @@
 #include <optional>
 #include <set>
 #include <unordered_set>
-const float fit_tolerance  = 0.00001;
+const float epsilon  = 0.00001;
 const float inter_area_width = 100.0;
 
+bool equal(float a, float b) {
+    return std::abs(a-b) < epsilon;
+}
 
 struct Point2d {
 public:
@@ -18,6 +21,9 @@ public:
     Point2d() = default;
     Point2d(float x_i, float y_i): x(x_i), y(y_i){}
     Point2d(const Point2d& another): x(another.x), y(another.y){}
+    bool operator==(const Point2d& rhs) const {
+        return equal(x, rhs.x) && equal(y, rhs.y);
+    }
 };
 
 Point2d operator-(const Point2d& lhs, const Point2d& rhs) {
@@ -47,9 +53,7 @@ struct Point3d: public Point2d {
     }
 
     bool operator==(const Point3d& rhs) const {
-        return (std::abs(x-rhs.x) < fit_tolerance) &&
-               (std::abs(y-rhs.y) < fit_tolerance) &&
-               (std::abs(z-rhs.z) < fit_tolerance);
+        return equal(x, rhs.x) && equal(y, rhs.y) && equal(z, rhs.z);
     }
 
     bool valid() const { return !(x != x || y != y || z != z); }
@@ -103,6 +107,18 @@ struct Triangle2d {
     Triangle2d() = default;
     Triangle2d(const Point2d& p1, const Point2d& p2, const Point2d& p3) {
         vertices[0] = p1, vertices[1] = p2, vertices[2] = p3;
+    }
+    Triangle2d(std::initializer_list<Point2d> list) {
+        size_t index = 0;
+        for(const auto& i : list) {
+            vertices[index] = i;
+            ++index;
+        }
+    }
+    bool operator==(const Triangle2d& another) {
+        return vertices[0] == another.vertices[0] &&
+               vertices[1] == another.vertices[1] &&
+               vertices[2] == another.vertices[2];
     }
 };
 
