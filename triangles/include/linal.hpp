@@ -6,11 +6,16 @@
 #include <optional>
 #include <set>
 #include <unordered_set>
-const float epsilon  = 0.00001;
-const float inter_area_width = 100.0;
+const float epsilon  = 1e-7;
 
-bool equal(float a, float b) {
+bool equal(double a, double b) {
     return std::abs(a-b) < epsilon;
+}
+bool lessEqual(double a, double b) {
+    return std::abs(a-b) <= epsilon;
+}
+bool greaterEqual(double a, double b) {
+    return std::abs(a-b) >= epsilon;
 }
 
 struct Point2d {
@@ -101,6 +106,31 @@ struct Plane {
     }
 };
 
+enum class position {
+    same_half_space,
+    diff_half_space,
+    same_plane
+};
+
+position checkRelativePosition(const std::vector<double>& dets) {
+    auto positive = false;
+    auto negative = false;
+    auto zero = false;
+    for(auto i = 0; i < dets.size(); ++i) {
+        if(dets.at(i) == 0)
+            zero = true;
+        else if(dets.at(i) > epsilon)
+            positive = true;
+        else if(dets.at(i) < -epsilon)
+            negative = true;
+    }
+    if(zero && !positive && !negative)
+        return position::same_plane;
+    else if (!zero && positive != negative)
+        return position::same_half_space;
+    else
+        return position::diff_half_space;
+}
 
 struct Triangle2d {
     std::array<Point2d, 3> vertices;
@@ -125,13 +155,8 @@ struct Triangle2d {
 struct Triangle3d {
 private:
     Plane plane;
+public:
     std::array<Point3d, 3> vertices;
-    enum class position {
-        same_half_space,
-        diff_half_space,
-        same_plane
-    };
-
 public:
     Triangle3d() = default;
     Triangle3d(const Point3d& p1, const Point3d& p2, const Point3d& p3): plane(p1, p2, p3) {
@@ -173,23 +198,23 @@ public:
         auto verts = thisProj.vertices;
         std::unordered_set<side_t> sides;
         for (size_t i = 0; i < thisProj.vertices.size(); ++i) {
-            auto line_point2 = thisProj.vertices[(i+1) % verts.size()];
-            auto line_point1 = thisProj.vertices[i % verts.size()];
-            auto line  = line_point2-line_point1;
-            Point3d line3d = {line.x, line.y, 0};
+            const auto line_point2 = thisProj.vertices[(i+1) % verts.size()];
+            const auto line_point1 = thisProj.vertices[i % verts.size()];
+            const auto line  = line_point2-line_point1;
+            const Point3d line3d = {line.x, line.y, 0};
             for (size_t j = 0; j < anotherProj.vertices.size(); ++j) {
+                const auto point2 = anotherProj.vertices[j % anotherProj.vertices.size()];
+                const auto point1 = thisProj.vertices[i % thisProj.vertices.size()];
+                const auto vector = point2 - point1;
+                const Point3d vector3d = {vector.x, vector.y, 0};
 
-                Point3d point_vec = {anotherProj.vertices[j % anotherProj.vertices.size()].x,
-                                     anotherProj.vertices[j % anotherProj.vertices.size()].y,
-                                     0};
-                auto point2 = anotherProj.vertices[j % anotherProj.vertices.size()];
-                auto point1 = thisProj.vertices[i % thisProj.vertices.size()];
-                auto vPoint = point2 - point1;
-                Point3d vPoint3d = {vPoint.x, vPoint.y, 0};
-                auto side = get_side(line3d, vPoint3d);
+                const auto side = get_side(line3d, vector3d);
 
-                auto is_point_inside = point2.x <= line_point2.x && point2.x >= line_point1.x &&
-                                       point2.y <= line_point2.y && point2.y >= line_point1.y;
+                const auto interval_len = std::hypot(line_point2.x-line_point1.x, line_point2.y-line_point1.y);
+                const auto half_sum1 = std::hypot(point2.x-line_point1.x, point2.y-line_point1.y);
+                const auto half_sum2 = std::hypot(point2.x-line_point2.x, point2.y-line_point2.y);
+                const auto is_point_inside = equal(half_sum1+half_sum2, interval_len);
+
                 if (side == side_t::on_line && is_point_inside)
                     return true;
                 else if (side != side_t::on_line)
@@ -202,7 +227,6 @@ public:
         }
         return false;
     }
-
 
     Triangle2d triangleProjection() const {
         Point2d p1, p2, p3;
@@ -229,33 +253,45 @@ public:
         return Triangle2d(p1, p2, p3);
     }
 
-    position checkRelativePosition(const std::vector<int>& dets) const{
-        if(std::all_of(std::begin(dets), std::end(dets), [](int i) { return i==0; })) {
-            return position::same_plane;
-        }
-        else {
-            bool same_sign = false;
-            for(auto i = 1; i < dets.size(); ++i) {
-                if(!(dets[i-1] >= 0) ^ (dets[i] < 0)) { //it's a diff sign?
-                    return position::diff_half_space;
-                }
-            }
-            return position::same_half_space;
-        }
-    }
-
     bool isPlane() const {
         if(plane.a == 0 && plane.b == 0 && plane.c == 0 && plane.d == 0) return false;
         return true;
     }
 
+    bool pointInTriangle (Point2d pt) const
+    {
+        auto v1 = vertices[0];
+        auto v2 = vertices[1];
+        auto v3 = vertices[2];
+
+        bool has_neg, has_pos;
+
+        auto sign = [](Point2d p1, Point3d p2, Point3d p3) -> double
+        {
+            return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+        };
+
+        auto d1 = sign(pt, v1, v2);
+        auto d2 = sign(pt, v2, v3);
+        auto d3 = sign(pt, v3, v1);
+
+        has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+        return !(has_neg && has_pos);
+    }
+
     //https://inria.hal.science/inria-00072100/file/RR-4488.pdf
     bool separable_plane_from(const Triangle3d& another) const {
         if (!isPlane()) return false;
-        std::vector<int> signs_tr1, signs_tr2;
+        std::vector<double> signs_tr1, signs_tr2;
         for (size_t i = 0; i < another.vertices.size(); i++) {
             auto det_this = det4(vertices[0], vertices[1], vertices[2], another.vertices[i]);
             auto det_another = det4(another.vertices[0], another.vertices[1], another.vertices[2], vertices[i]);
+            auto inside = pointInTriangle(another.vertices[i]);
+            if(!det_this && !inside)
+                return false;
+
             signs_tr1.push_back(det_this);
             signs_tr2.push_back(det_another);
         }
@@ -265,15 +301,16 @@ public:
         }
         else {
            auto pos2 = checkRelativePosition(signs_tr2);
-           if(pos1 == position::diff_half_space && pos2 == position::diff_half_space) {
-               return true;
+           if(pos1 == position::same_half_space && pos2 == position::same_half_space) {
+               return false;
            }
            else {
-               return false;
+               return true;
            }
         }
 
     }
+
     void print() const {
         std::cout << "Triangle: p1(" << vertices[0].x << ", " << vertices[0].y << ", " << vertices[0].z << "), p2("
                   << vertices[1].x << ", " << vertices[1].y << ", " << vertices[1].z << "), p3("
@@ -301,8 +338,9 @@ std::optional<std::set<size_t>> intersectTriangles(const std::vector<Triangle3d>
     std::set<size_t> intersection;
     size_t k = 0;
      for(auto i = 0; i < triangles.size(); ++i) {
-        for(auto j = k; j < triangles.size(); ++j) {
-            if (triangles.at(i).separable_plane_from(triangles.at(j)) && i != j) {
+        for(auto j = 1; j < triangles.size(); ++j) {
+            auto res = triangles[i].separable_plane_from(triangles[j]);
+            if (res && i != j) {
                 intersection.emplace(i);
                 intersection.emplace(j);
             }
