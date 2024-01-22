@@ -240,11 +240,6 @@ public:
             p2.x = vertices[1].x, p2.y = vertices[1].z;
             p3.x = vertices[2].x, p3.y = vertices[2].z;
         }
-        else if((plane.a == 0 && plane.b == 0) || plane.b == 0) { //projection to XY
-            p1.x = vertices[0].x, p1.y = vertices[0].y;
-            p2.x = vertices[1].x, p2.y = vertices[1].y;
-            p3.x = vertices[2].x, p3.y = vertices[2].y;
-        }
         else { //projection to XY
             p1.x = vertices[0].x, p1.y = vertices[0].y;
             p2.x = vertices[1].x, p2.y = vertices[1].y;
