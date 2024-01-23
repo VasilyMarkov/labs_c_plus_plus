@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
+clear
 cd build
 if [ $1 = "unit" ]; then
     echo "Unit tests running..."
     ./tests/unit_tests
+elif [ $1 = "point" ]; then
+    echo "Point tests running..."
+    ./tests/point_tests
 elif [ $1 = "full" ]; then
     echo "Full tests running..."
     ./tests/test_triangles

@@ -8,6 +8,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(test_triangles test_triangles.cpp)
 add_executable(unit_tests unit_tests.cpp)
+add_executable(point_tests point_tests.cpp)
 
 target_include_directories(test_triangles
   PRIVATE
@@ -19,5 +20,11 @@ target_include_directories(unit_tests
   ${CMAKE_SOURCE_DIR}/include
 )
 
+target_include_directories(point_tests
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+)
+
 target_link_libraries(test_triangles gtest_main gmock_main)
 target_link_libraries(unit_tests gtest_main gmock_main)
+target_link_libraries(point_tests gtest_main gmock_main)

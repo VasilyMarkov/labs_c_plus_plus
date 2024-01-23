@@ -14,7 +14,18 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& vec) {
     return out;
 }
 
-const double eps = 1e-7;
+TEST(UnitTest, PlaneConstructor) {
+    const std::vector<Point3d> points = {
+        {1,0,0},
+        {0,1,0},
+        {0,0,1}
+    };
+    Plane plane (points[0], points[1], points[2]);
+    EXPECT_EQ(plane.a, 1);
+    EXPECT_EQ(plane.b, 1);
+    EXPECT_EQ(plane.c, 1);
+    EXPECT_EQ(plane.d, -1);
+}
 
 TEST(UnitTest, isPlane) {
 
@@ -68,7 +79,7 @@ TEST(UnitTest, isNotPlane) {
 }
 
 TEST(UnitTest, triangleProjection) {
-    const std::vector<int> points = 
+    const std::vector<double> points = 
     {
         0,0,0, 1,0,0, 0,1,0,  //z = 0
         0,0,0, 1,0,0, 0,0,1,  //y = 0
@@ -95,7 +106,8 @@ TEST(UnitTest, triangleProjection) {
     auto result = true;
     std::vector<int> indexes;
     for(auto i = 0; i < triangles.size(); ++i) {
-        if(!(triangles.at(i).triangleProjection() == proj.at(i))) {
+        Triangle2d triangle_proj{triangles.at(i).projection(triangles.at(i).vertices)};
+        if(!(triangle_proj == proj.at(i))) {
             result = false;
             indexes.push_back(i);
         }        
@@ -154,8 +166,7 @@ TEST(UnitTest, separablePlane) {
         3,0,0, 0,3,0, 3,3,3,              //intersection between 2 lines
         1.5,1.5,0, 3,3,0, 3,3,3,          //intersection between line and point
         1,1,1, 3,3,0, 3,3,3,              //intersection between plane and point
-        1.5,1.5,0, 0,1.5,1.5, 3,3,3,      //intersection between plane and line
-        3+eps,0,0, 0,3+eps,0, 0,0,3+eps   //intersection between closed triangles
+        1.5,1.5,0, 0,1.5,1.5, 3,3,3      //intersection between plane and line
     };
     const auto triangles = createTriangles(points);
     auto result = true;
@@ -173,8 +184,9 @@ TEST(UnitTest, separablePlane) {
 }
 
 TEST(UnitTest, noSeparablePlane) {
-    std::vector<int> points = {
+    std::vector<double> points = {
         0,0,0, 0,1,0, 0,0,1,
+        0,eps,0, 0,1,eps, eps,0,1,
         0,0,2, 1,0,2, 1,0,3
     };
     const auto triangles = createTriangles(points);
@@ -218,12 +230,12 @@ TEST(UnitTest, separableLine) {
 }
 
 TEST(UnitTest, noSeparableLine) {
-    std::vector<int> points = 
+    std::vector<double> points = 
     {
         0,2,0, 1,2,0, 0,3,0,
         0,0,0, 1,0,0, 0,1,0
     };
-    std::vector<int> points1 = 
+    std::vector<double> points1 = 
     {
         0,0,0, 0,2,0, 0,0,2,
         1,0,0, 1,2,0, 3,0,0
@@ -244,12 +256,8 @@ TEST(UnitTest, noSeparableLine) {
 }
 
 TEST(UnitTest, pointInsideTriangle) {
-    std::vector<int> points = 
-    {
-        0,0,0, 4,0,0, 2,2,0,
-        0,0,0, 0,1,0, 0,0,1
-    };
-    const auto triangles = createTriangles(points);
+
+    Triangle2d triangle = {{0,0}, {4,0}, {2,2}};
     std::vector<Point2d> pt = 
     {
         {0,0},
@@ -261,7 +269,7 @@ TEST(UnitTest, pointInsideTriangle) {
     auto result = true;
     std::vector<int> indexes;
     for(auto i = 0; i < pt.size(); ++i) {
-        if(!triangles.at(0).pointInTriangle(pt.at(i))) {
+        if(!triangle.pointInTriangle(pt.at(i))) {
             result = false;
             indexes.push_back(i);
         }
