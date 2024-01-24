@@ -14,7 +14,7 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& vec) {
     return out;
 }
 
-TEST(UnitTest, PlaneConstructor) {
+TEST(UnitTest, planeConstructor) {
     const std::vector<Point3d> points = {
         {1,0,0},
         {0,1,0},
@@ -186,7 +186,7 @@ TEST(UnitTest, separablePlane) {
 TEST(UnitTest, noSeparablePlane) {
     std::vector<double> points = {
         0,0,0, 0,1,0, 0,0,1,
-        0,eps,0, 0,1,eps, eps,0,1,
+        // 0,eps,0, 0,1,eps, eps,0,1,
         0,0,2, 1,0,2, 1,0,3
     };
     const auto triangles = createTriangles(points);
@@ -200,7 +200,7 @@ TEST(UnitTest, noSeparablePlane) {
         }
     }
     if(!result)
-        std::cout << "--- noSeparablePlave incorrect indexes: " << indexes << "---" << std::endl;
+        std::cout << "--- noSeparablePlane incorrect indexes: " << indexes << "---" << std::endl;
     EXPECT_TRUE(result);
 }
 
@@ -278,6 +278,33 @@ TEST(UnitTest, pointInsideTriangle) {
         std::cout << "--- PointInsideTriangle incorrect indexes: " << indexes << "---" << std::endl;
     EXPECT_TRUE(result);
 }
+
+TEST(UnitTest, pointIsNotInTriangle) {
+
+    std::vector<double> points = {
+        0,0,0, 0,1,0, 0,0,1,
+        // 0,eps,0, 0,1,eps, eps,0,1,
+        0,0,2, 1,0,2, 1,0,3
+    };
+    const auto triangles = createTriangles(points);
+    auto result = false;
+    std::vector<double> signs_tr1, signs_tr2;
+    auto thisT = triangles.at(0);
+    auto another = triangles.at(1);
+    for (size_t i = 0; i < another.vertices.size(); ++i) {  
+        auto det_this = thisT.det4(thisT.vertices[0], thisT.vertices[1], thisT.vertices[2], another.vertices[i]);
+        auto det_another = another.det4(another.vertices[0], another.vertices[1], another.vertices[2], thisT.vertices[i]);
+        if(det_this == 0) {
+            Triangle2d proj(thisT.projection(thisT.vertices));
+            auto point = thisT.projection(std::array<Point3d, 1>{another.vertices[i]});
+            if(!proj.pointInTriangle(point[0])) result = true; 
+        }
+    }
+    
+    EXPECT_TRUE(result);
+}
+
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

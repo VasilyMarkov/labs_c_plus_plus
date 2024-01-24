@@ -42,7 +42,7 @@ public:
     }
 
     friend std::ostream& operator<< (std::ostream& out, const Point2d& p) {
-        out << "Point3d: x = " << p.v[0] << ", y = " << p.v[1] << std::endl;
+        out << "Point2d: x = " << p.v[0] << ", y = " << p.v[1];
         return out;
     }
 };
@@ -70,7 +70,7 @@ public:
     bool valid() const { return !(v[0] != v[0] || v[1] != v[1] || v[2] != v[2]); }
 
     friend std::ostream& operator<< (std::ostream& out, const Point3d& p) {
-        out << "Point3d: x = " << p.v[0] << ", y = " << p.v[1] << ", z = " << p.v[2] << std::endl;
+        out << "Point3d: x = " << p.v[0] << ", y = " << p.v[1] << ", z = " << p.v[2];
         return out;
     }
 
@@ -165,6 +165,11 @@ struct Triangle2d {
         return !(has_neg && has_pos);
     }
 };
+
+std::ostream& operator<< (std::ostream& out, const Triangle2d& t) {
+    out << "Triangle2d: " << t.vertices[0] << ", " << t.vertices[1] << ", " << t.vertices[2];  
+    return out;
+}
 
 struct Triangle3d {
 private:
@@ -294,15 +299,15 @@ public:
 
         std::vector<double> signs_tr1, signs_tr2;
 
-        for (size_t i = 0; i < another.vertices.size(); i++) {  
+        for (size_t i = 0; i < another.vertices.size(); ++i) {  
             auto det_this = det4(vertices[0], vertices[1], vertices[2], another.vertices[i]);
             auto det_another = det4(another.vertices[0], another.vertices[1], another.vertices[2], vertices[i]);
             
-            // if(det_this == 0) {
-            //     Triangle2d proj(projection(vertices));
-            //     auto point = projection(std::array<Point3d, 1>{vertices[i]});
-            //     if(proj.pointInTriangle(point[0])) return false; 
-            // }
+            if(det_this == 0) {
+                Triangle2d proj(projection(vertices));
+                auto point = projection(std::array<Point3d, 1>{another.vertices[i]});
+                if(!proj.pointInTriangle(point[0])) return false;
+            }
 
             signs_tr1.push_back(det_this);
             signs_tr2.push_back(det_another);
@@ -323,13 +328,12 @@ public:
 
     }
 
-    void print() const {
-        std::cout << "Triangle: p1(" << vertices[0].x() << ", " << vertices[0].y() << ", " << vertices[0].z() << "), p2("
-                  << vertices[1].x() << ", " << vertices[1].y() << ", " << vertices[1].z() << "), p3("
-                  << vertices[2].x() << ", " << vertices[2].y() << ", " << vertices[2].z() << ")" << std::endl;
-
-    }
 };
+
+std::ostream& operator<< (std::ostream& out, const Triangle3d& t) {
+    out << "Triangle3d: " << t.vertices[0] << ", " << t.vertices[1] << ", " << t.vertices[2];  
+    return out;
+}
 
 template <typename T>
 std::vector<Triangle3d> createTriangles(const std::vector<T>& points) {

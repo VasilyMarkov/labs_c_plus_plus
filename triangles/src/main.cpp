@@ -3,6 +3,7 @@
 #include <map>
 #include <algorithm>
 #include <chrono>
+#include <optional>
 #include "linal.hpp"
 // #define TEST
 
