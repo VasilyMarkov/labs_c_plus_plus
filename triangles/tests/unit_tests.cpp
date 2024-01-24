@@ -186,7 +186,7 @@ TEST(UnitTest, separablePlane) {
 TEST(UnitTest, noSeparablePlane) {
     std::vector<double> points = {
         0,0,0, 0,1,0, 0,0,1,
-        // 0,eps,0, 0,1,eps, eps,0,1,
+        0,eps,0, 0,1,eps, eps,0,1,
         0,0,2, 1,0,2, 1,0,3
     };
     const auto triangles = createTriangles(points);
@@ -235,12 +235,7 @@ TEST(UnitTest, noSeparableLine) {
         0,2,0, 1,2,0, 0,3,0,
         0,0,0, 1,0,0, 0,1,0
     };
-    std::vector<double> points1 = 
-    {
-        0,0,0, 0,2,0, 0,0,2,
-        1,0,0, 1,2,0, 3,0,0
-    };
-    const auto triangles = createTriangles(points1);
+    const auto triangles = createTriangles(points);
 
     auto result = true;
     std::vector<int> indexes;
