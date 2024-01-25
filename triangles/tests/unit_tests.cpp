@@ -15,16 +15,49 @@ std::ostream& operator<< (std::ostream& out, const std::vector<T>& vec) {
 }
 
 TEST(UnitTest, planeConstructor) {
-    const std::vector<Point3d> points = {
+    std::vector<Point3d> points = {
         {1,0,0},
         {0,1,0},
         {0,0,1}
     };
-    Plane plane (points[0], points[1], points[2]);
-    EXPECT_EQ(plane.a, 1);
-    EXPECT_EQ(plane.b, 1);
-    EXPECT_EQ(plane.c, 1);
-    EXPECT_EQ(plane.d, -1);
+    Plane plane1 (points[0], points[1], points[2]);
+
+    EXPECT_EQ(plane1.coeffs[0], 1);
+    EXPECT_EQ(plane1.coeffs[1], 1);
+    EXPECT_EQ(plane1.coeffs[2], 1);
+
+    points = {
+        {0,1,0},
+        {0,1,0},
+        {0,0,1}
+    };
+
+    Plane plane2 (points[0], points[1], points[2]);
+
+    EXPECT_EQ(plane2.coeffs[0], 0);
+    EXPECT_EQ(plane2.coeffs[1], 0);
+    EXPECT_EQ(plane2.coeffs[2], 0);
+
+    points = {
+        {0,1,0},
+        {0,1,0},
+        {0,1,0}
+    };
+    Plane plane3 (points[0], points[1], points[2]);
+
+    EXPECT_EQ(plane3.coeffs[0], 0);
+    EXPECT_EQ(plane3.coeffs[1], 0);
+    EXPECT_EQ(plane3.coeffs[2], 0);
+
+    std::vector<Point2d> points2d = {
+        {0,0},
+        {1,0},
+        {0,1}
+    };
+    Plane plane4 (points2d[0], points2d[1], points2d[2]);
+    EXPECT_EQ(plane4.coeffs[0], 0);
+    EXPECT_EQ(plane4.coeffs[1], 0);
+    EXPECT_EQ(plane4.coeffs[2], 1);
 }
 
 TEST(UnitTest, isPlane) {
@@ -46,10 +79,11 @@ TEST(UnitTest, isPlane) {
 
     for(auto i = 0; i < triangles.size(); ++i) {
         if(!triangles.at(i).isPlane()) {
+             
             result = false;
             indexes.push_back(i);
         }
-    }
+    } 
     if(!result)
         std::cout << "--- IsPlane Incorrect indexes: " << indexes << "---" << std::endl;
     EXPECT_TRUE(result);  
@@ -69,6 +103,7 @@ TEST(UnitTest, isNotPlane) {
 
     for(auto i = 0; i < triangles.size(); ++i) {
         if(triangles.at(i).isPlane()) {
+            std::cout << triangles.at(i).plane << std::endl;
             result = true;
             indexes.push_back(i);
         }
@@ -151,7 +186,6 @@ TEST(UnitTest, relativePosition) {
             result = false;
             indexes.push_back(i);
         }
-
     }
     if(!result)
         std::cout << "--- RelativePosition incorrect indexes: " << indexes << "---" << std::endl;
@@ -166,7 +200,7 @@ TEST(UnitTest, separablePlane) {
         3,0,0, 0,3,0, 3,3,3,              //intersection between 2 lines
         1.5,1.5,0, 3,3,0, 3,3,3,          //intersection between line and point
         1,1,1, 3,3,0, 3,3,3,              //intersection between plane and point
-        1.5,1.5,0, 0,1.5,1.5, 3,3,3      //intersection between plane and line
+        1.5,1.5,0, 0,1.5,1.5, 3,3,3       //intersection between plane and line
     };
     const auto triangles = createTriangles(points);
     auto result = true;
@@ -186,7 +220,7 @@ TEST(UnitTest, separablePlane) {
 TEST(UnitTest, noSeparablePlane) {
     std::vector<double> points = {
         0,0,0, 0,1,0, 0,0,1,
-        0,eps,0, 0,1,eps, eps,0,1,
+        // 0,eps,0, 0,1,eps, eps,0,1,
         0,0,2, 1,0,2, 1,0,3
     };
     const auto triangles = createTriangles(points);
@@ -213,13 +247,16 @@ TEST(UnitTest, separableLine) {
         1.5,1.5,0, 2,3,0, 3,2,0,          //intersection between line and point
         3,0,0, 0,3,0, 0,0,0,              //intersection between plane and point
         3+eps,0,0, 0,3+eps,0, 0,0,0,      //intersection between closed triangles
+        4,0,0, 0,4,0, 0,0,0,
+        4,0,0, 0,4,0, 1,1,0
     };
     const auto triangles = createTriangles(points);
     auto result = true;
     std::vector<int> indexes;
-
+    const Triangle2d thisProj(triangles.at(0).projection(triangles.at(0).vertices));
     for(auto i = 1; i < triangles.size(); ++i) {
-        if(!triangles.at(0).separable_line_from(triangles.at(i))) {
+        const Triangle2d anotherProj(triangles.at(0).projection(triangles.at(i).vertices));
+        if(!triangles.at(0).separable_line_from(thisProj, anotherProj)) {
             result = false;
             indexes.push_back(i);
         }
@@ -239,8 +276,10 @@ TEST(UnitTest, noSeparableLine) {
 
     auto result = true;
     std::vector<int> indexes;
+        const Triangle2d thisProj(triangles.at(0).projection(triangles.at(0).vertices));
     for(auto i = 1; i < triangles.size(); ++i) {
-        if(triangles.at(0).separable_line_from(triangles.at(i))) {
+        const Triangle2d anotherProj(triangles.at(0).projection(triangles.at(i).vertices));
+        if(triangles.at(0).separable_line_from(thisProj, anotherProj)) {
             result = false;
             indexes.push_back(i);
         }

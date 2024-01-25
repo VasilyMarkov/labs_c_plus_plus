@@ -68,12 +68,19 @@ TEST(UnitTest, point2dMinusOperator) {
     result = point2 - point1;
     EXPECT_DOUBLE_EQ(result.x(), -2.0);
     EXPECT_DOUBLE_EQ(result.y(), -1.0);
+}
 
-    result = point1 - point3;
+TEST(UnitTest, point3dMinusOperator) {
+    Point3d point1{3.0,2.0,3.0};
+    Point3d point2{1.0,1.0,1.0};
+
+    auto result = point1 - point2;
     EXPECT_DOUBLE_EQ(result.x(), 2.0);
     EXPECT_DOUBLE_EQ(result.y(), 1.0);
+    EXPECT_DOUBLE_EQ(result.z(), 2.0);
 
-    result = point3 - point1;
+    result = point2 - point1;
     EXPECT_DOUBLE_EQ(result.x(), -2.0);
     EXPECT_DOUBLE_EQ(result.y(), -1.0);
+    EXPECT_DOUBLE_EQ(result.z(), -2.0);
 }

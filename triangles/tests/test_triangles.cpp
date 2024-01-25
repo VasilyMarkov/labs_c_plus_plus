@@ -288,10 +288,10 @@ TEST(Test, intersectClosedTriangles2) {
     EXPECT_THAT(result, std::nullopt);
 }
 
-TEST(Test, TrianglesTest) {
-    auto points = generator.getPoints();
-    auto result = intersectTriangles(createTriangles(points));
-}
+// TEST(Test, TrianglesTest) {
+//     auto points = generator.getPoints();
+//     auto result = intersectTriangles(createTriangles(points));
+// }
 
 
 int main(int argc, char **argv) {

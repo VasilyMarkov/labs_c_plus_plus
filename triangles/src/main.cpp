@@ -5,7 +5,7 @@
 #include <chrono>
 #include <optional>
 #include "linal.hpp"
-// #define TEST
+#define TEST
 
 template <typename T>
 void print(const std::vector<T>& vec) {
@@ -46,9 +46,8 @@ int main() {
         print(result.value());
     }
 #else
-    std::vector<int> points = {0,0,0, 0,0,0, 0,0,0,
-                               1,0,0, 0,0,0, 0,0,0,
-                               1,0,0, 2,0,0, 3,0,0};
+    std::vector<int> points = {0,0,0, 0,1,0, 1,0,0,
+                               0,0,0, 0,2,0, 2,0,0};
     const auto triangles = createTriangles(points);
     const auto result = intersectTriangles(triangles);
     if(result != std::nullopt) {

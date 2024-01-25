@@ -3,12 +3,12 @@ clear
 cd build
 if [ $1 = "unit" ]; then
     echo "Unit tests running..."
-    ./tests/unit_tests
+    ./tests/unit_tests $2
 elif [ $1 = "point" ]; then
     echo "Point tests running..."
-    ./tests/point_tests
+    ./tests/point_tests $2
 elif [ $1 = "full" ]; then
     echo "Full tests running..."
-    ./tests/test_triangles
+    ./tests/test_triangles $2
 fi
 

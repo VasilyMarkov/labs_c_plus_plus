@@ -67,10 +67,12 @@ public:
         return equal(v[0], rhs.v[0]) && equal(v[1], rhs.v[1]) && equal(v[2], rhs.v[2]);
     }
 
-    bool valid() const { return !(v[0] != v[0] || v[1] != v[1] || v[2] != v[2]); }
+    friend Point3d operator-(const Point3d& lhs, const Point3d& rhs) {
+        return {lhs.v[0] - rhs.v[0], lhs.v[1] - rhs.v[1], lhs.v[2] - rhs.v[2]};
+    }
 
     friend std::ostream& operator<< (std::ostream& out, const Point3d& p) {
-        out << "Point3d: x = " << p.v[0] << ", y = " << p.v[1] << ", z = " << p.v[2];
+        out << "Point3d: x = " << p.v[0] << ", y = " << p.v[1] << ", z = " << p.v[2] << ' ';
         return out;
     }
 
@@ -80,29 +82,33 @@ public:
     static Point3d cross(const Point3d& v1, const Point3d& v2) {
         return {v1.y()*v2.z()-v1.z()*v2.y(), -v1.x()*v2.z()+v1.z()*v2.x(), v1.x()*v2.y()-v1.y()*v2.x()};
     }
+
 };
 
 struct Plane {
-    double a = NAN, b = NAN, c = NAN, d = NAN;
+    std::array<double ,3> coeffs = {0,0,0};
     Plane() = default;
     Plane(const Point3d& p1, const Point3d& p2, const Point3d& p3) {
-        const auto a1 = p2.x() - p1.x();
-        const auto b1 = p2.y() - p1.y();
-        const auto c1 = p2.z() - p1.z();
-        const auto a2 = p3.x() - p1.x();
-        const auto b2 = p3.y() - p1.y();
-        const auto c2 = p3.z() - p1.z();
-
-        a = b1 * c2 - b2 * c1;
-        b = a2 * c1 - a1 * c2;
-        c = a1 * b2 - b1 * a2;
-        d = (- a * p1.x() - b * p1.y() - c * p1.z());
+        const auto vec1 = p2 - p1;
+        const auto vec2 = p3 - p1;
+        const auto cross = Point3d::cross(vec1, vec2);
+        coeffs[0] = cross.x();
+        coeffs[1] = cross.y();
+        coeffs[2] = cross.z();
+    }
+    Plane(const Point2d& p1, const Point2d& p2, const Point2d& p3) {
+        const auto vec1 = p2 - p1;
+        const auto vec2 = p3 - p1;
+        const auto cross = Point3d::cross({vec1.x(), vec1.y(), 0}, {vec2.x(), vec2.y(), 0});
+        coeffs[0] = cross.x();
+        coeffs[1] = cross.y();
+        coeffs[2] = cross.z();
     }
 };
 
 std::ostream& operator<< (std::ostream& out, const Plane& p) {
-    out << "Plane: a = " << p.a << ", b = " << p.b 
-        << ", c = " << p.c << ", d = " << p.d;
+    out << "Plane: x = " << p.coeffs[0] << ", y = " << p.coeffs[1] 
+        << ", z = " << p.coeffs[2] << ' ';
     return out;
 }
 
@@ -133,20 +139,29 @@ position checkRelativePosition(const std::vector<double>& dets) {
 }
 
 struct Triangle2d {
+private:
+    
+public:
+    Plane plane;
     std::array<Point2d, 3> vertices;
 
     Triangle2d() = default;
     Triangle2d(const Point2d& p1, const Point2d& p2, const Point2d& p3) {
         vertices[0] = p1, vertices[1] = p2, vertices[2] = p3;
     }
-    Triangle2d(const std::array<Point2d, 3>& points): vertices(points) {}
+    Triangle2d(const std::array<Point2d, 3>& points): vertices(points), plane(points[0], points[1], points[2]) {}
 
     bool operator==(const Triangle2d& another) {
         return vertices[0] == another.vertices[0] &&
                vertices[1] == another.vertices[1] &&
                vertices[2] == another.vertices[2];
     }
-    
+
+    bool isPlane() const {
+        if(!plane.coeffs[0] && !plane.coeffs[1] && !plane.coeffs[2]) return false;
+        else return true;
+    }
+
     bool pointInTriangle(const Point2d& pt) const
     {
         auto sign = [](const Point2d& p1, const Point2d& p2, const Point2d& p3) 
@@ -167,14 +182,15 @@ struct Triangle2d {
 };
 
 std::ostream& operator<< (std::ostream& out, const Triangle2d& t) {
-    out << "Triangle2d: " << t.vertices[0] << ", " << t.vertices[1] << ", " << t.vertices[2];  
+    out << "Triangle2d: " << t.vertices[0] << ", " << t.vertices[1] << ", " << t.vertices[2] << ' ';  
     return out;
 }
 
 struct Triangle3d {
 private:
-    Plane plane;
+    
 public:
+    Plane plane;
     std::array<Point3d, 3> vertices;
     Triangle3d() = default;
     Triangle3d(const Point3d& p1, const Point3d& p2, const Point3d& p3): vertices{p1, p2, p3}, plane(p1, p2, p3) {}
@@ -242,10 +258,10 @@ public:
             return out_vertices;
         };
 
-        if(plane.b == 0 && plane.c == 0) { //projection to YZ
+        if(plane.coeffs[1] == 0 && plane.coeffs[2] == 0) { //projection to YZ
             return projection(vertices, basis_plane::YZ);
         }
-        else if((plane.a == 0 && plane.c == 0) || plane.c == 0) { //projection to XZ
+        else if((plane.coeffs[0] == 0 && plane.coeffs[2] == 0) || plane.coeffs[2] == 0) { //projection to XZ
             return projection(vertices, basis_plane::XZ);
         }
         else { //projection to XY
@@ -254,16 +270,14 @@ public:
     }
 
     bool isPlane() const {
-        if(plane.a == 0 && plane.b == 0 && plane.c == 0 && plane.d == 0) return false;
+        if(!plane.coeffs[0] && !plane.coeffs[1] && !plane.coeffs[2]) return false;
         return true;
     }
 
     //https://blackpawn.com/texts/pointinpoly/default.html Same Side Technique
-    bool separable_line_from(const Triangle3d& another) const {
-        const Triangle2d anotherProj(another.projection(another.vertices));
-        const Triangle2d thisProj(projection(vertices));
-        std::unordered_set<side_t> sides;
+    bool separable_line_from(const Triangle2d& thisProj, const Triangle2d& anotherProj) const {
 
+        std::unordered_set<side_t> sides;
         for (size_t i = 0; i < thisProj.vertices.size(); ++i) {
 
             const auto line_point2 = thisProj.vertices[(i+1) % thisProj.vertices.size()];
@@ -297,33 +311,60 @@ public:
     bool separable_plane_from(const Triangle3d& another) const {
         if (!isPlane()) return false;
 
-        std::vector<double> signs_tr1, signs_tr2;
+        std::vector<double> signs_this, signs_another;
 
         for (size_t i = 0; i < another.vertices.size(); ++i) {  
             auto det_this = det4(vertices[0], vertices[1], vertices[2], another.vertices[i]);
             auto det_another = det4(another.vertices[0], another.vertices[1], another.vertices[2], vertices[i]);
             
-            if(det_this == 0) {
-                Triangle2d proj(projection(vertices));
-                auto point = projection(std::array<Point3d, 1>{another.vertices[i]});
-                if(!proj.pointInTriangle(point[0])) return false;
-            }
+//            if(det_this == 0) {
+//                Triangle2d proj(projection(vertices));
+//                auto point = projection(std::array<Point3d, 1>{another.vertices[i]});
+//                if(!proj.pointInTriangle(point[0])) return false;
+//            }
 
-            signs_tr1.push_back(det_this);
-            signs_tr2.push_back(det_another);
+            signs_this.push_back(det_this);
+            signs_another.push_back(det_another);
+
         }
-        auto pos1 = checkRelativePosition(signs_tr1);
+        auto pos1 = checkRelativePosition(signs_this);
+        const Triangle2d thisProj(projection(vertices));
+        const Triangle2d anotherProj(projection(another.vertices));
+        // std::cout << signs_this[0] << ' ' << signs_this[1] << ' ' << signs_this[2] << std::endl;
+        // std::cout << signs_another[0] << ' ' << signs_another[1] << ' ' << signs_another[2] << std::endl;
+        // std::cout << std::endl;
+        auto cnt1 = 0, cnt2 = 0;
+        // for(auto i = 0; i < signs_this.size(); ++i) {
+        //     if(signs_this[i] == 0) ++cnt1;
+        // }
+        // for(auto i = 0; i < signs_another.size(); ++i) {
+        //     if(signs_another[i] == 0) ++cnt2;
+        // }
+        // if((cnt1 < 3 && cnt1 > 0) && (cnt2 < 3 && cnt2 > 0)) {
+        //     if (!thisProj.isPlane() || !anotherProj.isPlane()) {
+        //         std::cout << "Not plane" << std::endl;
+        //         return false;
+        //     }
+        // }
+
+        // std::cout << anotherProj << std::endl;
         if(pos1 == position::same_plane) {
-            return separable_line_from(another);
+            auto res = separable_line_from(thisProj, anotherProj);
+            return res;
         }
         else {
-           auto pos2 = checkRelativePosition(signs_tr2);
-           if(pos1 == position::same_half_space && pos2 == position::same_half_space) {
-               return false;
-           }
-           else {
-               return true;
-           }
+            // std::cout << thisProj.plane << anotherProj.plane << std::endl;
+
+            auto pos2 = checkRelativePosition(signs_another);
+            if(pos1 == position::same_half_space && pos2 == position::same_half_space) {
+                return false;
+            }
+            else {
+                if(pos1 == position::diff_half_space && pos2 == position::diff_half_space) {
+
+                }
+                return true;
+            }
         }
 
     }
@@ -355,10 +396,12 @@ std::optional<std::set<size_t>> intersectTriangles(const std::vector<Triangle3d>
     size_t k = 0;
      for(auto i = 0; i < triangles.size(); ++i) {
         for(auto j = 1; j < triangles.size(); ++j) {
-            auto res = triangles[i].separable_plane_from(triangles[j]);
-            if (res && i != j) {
-                intersection.emplace(i);
-                intersection.emplace(j);
+            if(i != j) {
+                auto res = triangles[i].separable_plane_from(triangles[j]);
+                if (res) {
+                    intersection.emplace(i);
+                    intersection.emplace(j);
+                }
             }
         }
         k++;
