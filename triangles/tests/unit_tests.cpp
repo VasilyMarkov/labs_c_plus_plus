@@ -200,7 +200,8 @@ TEST(UnitTest, separablePlane) {
         3,0,0, 0,3,0, 3,3,3,              //intersection between 2 lines
         1.5,1.5,0, 3,3,0, 3,3,3,          //intersection between line and point
         1,1,1, 3,3,0, 3,3,3,              //intersection between plane and point
-        1.5,1.5,0, 0,1.5,1.5, 3,3,3       //intersection between plane and line
+        1.5,1.5,0, 0,1.5,1.5, 3,3,3,      //intersection between plane and line
+        2,2,2, 0.5,0.5,0.5, 1,1,2               //intersection common case
     };
     const auto triangles = createTriangles(points);
     auto result = true;
@@ -219,10 +220,11 @@ TEST(UnitTest, separablePlane) {
 
 TEST(UnitTest, noSeparablePlane) {
     std::vector<double> points = {
-        0,0,0, 0,1,0, 0,0,1,
+        0,0,0, 0,1,0, 0,1,1,
         // 0,eps,0, 0,1,eps, eps,0,1,
         0,0,2, 1,0,2, 1,0,3
     };
+    
     const auto triangles = createTriangles(points);
     auto result = true;
     std::vector<int> indexes;
@@ -338,7 +340,59 @@ TEST(UnitTest, pointIsNotInTriangle) {
     EXPECT_TRUE(result);
 }
 
+TEST(UnitTest, pointInTriangle3d) {
 
+    std::vector<double> points = {
+        3,0,0, 0,3,0, 0,0,3,
+    };
+    const auto triangles = createTriangles(points);
+
+    std::vector<Point3d> pt = 
+    {
+        {1,1,1},
+        {3,0,0},
+        {1.5,1.5,0},
+        // {eps,0,0},
+    };
+
+    auto result = true;
+    std::vector<int> indexes;
+    for(auto i = 0; i < pt.size(); ++i) {
+        if(!triangles.at(0).pointInTriangle(pt.at(i))) {
+            result = false;
+            indexes.push_back(i);
+        }
+    }
+    if(!result)
+        std::cout << "--- pointInTriangle3d incorrect indexes: " << indexes << "---" << std::endl;
+    EXPECT_TRUE(result);
+}
+
+TEST(UnitTest, pointOutTriangle3d) {
+
+    std::vector<double> points = {
+        0,0,0, 3,0,0, 0,3,0,
+    };
+    const auto triangles = createTriangles(points);
+
+    std::vector<Point3d> pt = 
+    {
+        {0,0,3},
+        // {eps,0,0},
+    };
+
+    auto result = true;
+    std::vector<int> indexes;
+    for(auto i = 0; i < pt.size(); ++i) {
+        if(triangles.at(0).pointInTriangle(pt.at(i))) {
+            result = false;
+            indexes.push_back(i);
+        }
+    }
+    if(!result)
+        std::cout << "--- pointOutTriangle3d incorrect indexes: " << indexes << "---" << std::endl;
+    EXPECT_TRUE(result);
+}
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

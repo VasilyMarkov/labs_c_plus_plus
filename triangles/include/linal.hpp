@@ -274,6 +274,19 @@ public:
         return true;
     }
 
+    bool pointInTriangle(const Point3d& pt) const
+    {
+        const auto a = vertices[0] - pt;
+        const auto b = vertices[1] - pt;
+        const auto c = vertices[2] - pt;
+        const auto u = Point3d::cross(a, b);
+        const auto v = Point3d::cross(c, a);
+        const auto w = Point3d::cross(b, c);
+        if(Point3d::dot(u ,v) < 0) return false;
+        if(Point3d::dot(u ,w) < 0) return false;
+        return true;
+    }
+
     //https://blackpawn.com/texts/pointinpoly/default.html Same Side Technique
     bool separable_line_from(const Triangle2d& thisProj, const Triangle2d& anotherProj) const {
 
@@ -316,13 +329,7 @@ public:
         for (size_t i = 0; i < another.vertices.size(); ++i) {  
             auto det_this = det4(vertices[0], vertices[1], vertices[2], another.vertices[i]);
             auto det_another = det4(another.vertices[0], another.vertices[1], another.vertices[2], vertices[i]);
-            
-//            if(det_this == 0) {
-//                Triangle2d proj(projection(vertices));
-//                auto point = projection(std::array<Point3d, 1>{another.vertices[i]});
-//                if(!proj.pointInTriangle(point[0])) return false;
-//            }
-
+    
             signs_this.push_back(det_this);
             signs_another.push_back(det_another);
 
@@ -330,30 +337,27 @@ public:
         auto pos1 = checkRelativePosition(signs_this);
         const Triangle2d thisProj(projection(vertices));
         const Triangle2d anotherProj(projection(another.vertices));
-        // std::cout << signs_this[0] << ' ' << signs_this[1] << ' ' << signs_this[2] << std::endl;
-        // std::cout << signs_another[0] << ' ' << signs_another[1] << ' ' << signs_another[2] << std::endl;
-        // std::cout << std::endl;
-        auto cnt1 = 0, cnt2 = 0;
-        // for(auto i = 0; i < signs_this.size(); ++i) {
-        //     if(signs_this[i] == 0) ++cnt1;
-        // }
-        // for(auto i = 0; i < signs_another.size(); ++i) {
-        //     if(signs_another[i] == 0) ++cnt2;
-        // }
-        // if((cnt1 < 3 && cnt1 > 0) && (cnt2 < 3 && cnt2 > 0)) {
-        //     if (!thisProj.isPlane() || !anotherProj.isPlane()) {
-        //         std::cout << "Not plane" << std::endl;
-        //         return false;
-        //     }
-        // }
+        auto zeros1 = 0, zeros2 = 0;
+        auto zeros_index = 0;
+        for(auto i = 0; i < signs_this.size(); ++i) {
+            if(signs_this[i] == 0) {
+                zeros_index = i;
+                ++zeros1;
+            }
+        }
+        for(auto i = 0; i < signs_another.size(); ++i) {
+            if(signs_another[i] == 0) ++zeros2;
+        }
+        if(((zeros1 == 1 && zeros2 == 2) || (zeros1 == 2 && zeros2 == 1)) || 
+            (zeros1 == 1 && zeros2 == 1)) {
+            if(!pointInTriangle(another.vertices[zeros_index])) return false;
+        }
 
-        // std::cout << anotherProj << std::endl;
         if(pos1 == position::same_plane) {
             auto res = separable_line_from(thisProj, anotherProj);
             return res;
         }
         else {
-            // std::cout << thisProj.plane << anotherProj.plane << std::endl;
 
             auto pos2 = checkRelativePosition(signs_another);
             if(pos1 == position::same_half_space && pos2 == position::same_half_space) {
