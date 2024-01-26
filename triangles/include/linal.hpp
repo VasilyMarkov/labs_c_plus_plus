@@ -322,7 +322,8 @@ public:
 
     //https://inria.hal.science/inria-00072100/file/RR-4488.pdf
     bool separable_plane_from(const Triangle3d& another) const {
-        if (!isPlane()) return false;
+        
+        if (!isPlane() || !another.isPlane()) return false;
 
         std::vector<double> signs_this, signs_another;
 
