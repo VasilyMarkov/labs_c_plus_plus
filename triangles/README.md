@@ -8,6 +8,8 @@ or
 
 ./bld 
 ## Run
-./triangles - programm
+./triangles 
 
-./tests - tests
+./run_tests full
+./run_tests unit
+./run_tests point
