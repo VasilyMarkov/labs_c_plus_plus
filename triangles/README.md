@@ -12,4 +12,4 @@ or
 
 ./run_tests full \
 ./run_tests unit \
-./run_tests point \
+./run_tests point 
