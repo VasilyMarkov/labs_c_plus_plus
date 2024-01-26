@@ -5,7 +5,7 @@
 #include <chrono>
 #include <optional>
 #include "linal.hpp"
-#define TEST
+// #define TEST
 
 template <typename T>
 void print(const std::vector<T>& vec) {

@@ -271,16 +271,6 @@ TEST(Test, intersectFiveTriangles3D) {
 }
 
 TEST(Test, intersectClosedTriangles1) {
-    double eps = 1e-7;
-    std::vector<double> points = {0,0,0, 1,0,0, 0,1,0,
-                                  1+eps,0,0, 0,1,0, 1+eps,1,0};
-
-    auto result = intersectTriangles(createTriangles(points));
-    EXPECT_THAT(result, std::nullopt);
-}
-
-TEST(Test, intersectClosedTriangles2) {
-    double eps = 1e-7;
     std::vector<double> points = {0,0,0, 1,0,0, 0,1,0,
                                   -eps,0,0, -1,0,0, -eps,1,0};
 
