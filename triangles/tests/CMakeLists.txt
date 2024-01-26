@@ -5,7 +5,7 @@ FetchContent_Declare(
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
-
+message("Tests building...")
 add_executable(test_triangles test_triangles.cpp)
 add_executable(unit_tests unit_tests.cpp)
 add_executable(point_tests point_tests.cpp)

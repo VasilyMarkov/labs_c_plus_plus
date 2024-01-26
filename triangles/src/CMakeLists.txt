@@ -1,3 +1,5 @@
+message("Triangles building...")
+
 add_executable(triangles 
     main.cpp
 )
