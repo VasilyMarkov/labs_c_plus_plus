@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+clear
+OPTION=$1
+echo "Running CMake..."
+cmake -S . -B build -DTESTS=$OPTION
+cmake --build build 
+if [ $? -ne 0 ]; then
+	exit 1
+fi
