@@ -38,10 +38,9 @@ private:
         }
     }
 
-
     template <typename F> void moveTop(buffer& src, KeyT key, F slow_get_page) {
-        src.list.erase(src.hash[key]);
         src.list.emplace_front(key, slow_get_page(key));
+        src.list.erase(src.hash[key]);
         src.hash[key] = src.list.begin();
     }
 
@@ -55,7 +54,7 @@ private:
     }
     bool full(const list_t& list) const noexcept {return (list.size() == cache_size);}
 public:
-    ARC():cache_size(0) {}
+    ARC() = default;
     ARC(size_t size): cache_size(size/2) {if (cache_size % 2 != 0) odd_size = true;}
     void setSize(size_t size) {cache_size = size/2; if (cache_size % 2 != 0) odd_size = true;}
     size_t getHits() const {return hits;}
