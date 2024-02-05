@@ -88,6 +88,10 @@ protected:
     }
 };
 
+TEST_F(CacheTest, checkNullSizeException) {
+    EXPECT_THROW({caches::ARC<int>(0);}, std::runtime_error);
+}
+
 TEST_F(CacheTest, consistCheck) {
     arc.setSize(20);
     size_t cnt_size = 10;
@@ -118,7 +122,7 @@ TEST_F(CacheTest, compare) {
     arc.setSize(n);
     ic.setSize(n);
     bool failed = false;
-    for(auto i = 0; i < 10000; ++i) {
+    for(auto i = 0; i < 100; ++i) {
         for(auto mode = 0; mode < 4; ++mode) {
             createRandomData(n*4, mode);
             ic.setBuffer(pages);

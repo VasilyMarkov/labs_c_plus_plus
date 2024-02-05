@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <exception>
 #include "arc.h"
 #include "ideal_cache.h"
 
@@ -25,16 +26,21 @@ int main()
         pages.push_back(tmp);
     }
 #ifdef ARC_DEF
-    caches::ARC<int> arc{m};
-    auto test {[&](std::vector<int>& pages){
-        for(const auto& i : pages) {
-            arc.lookup_update(i, slow_get_page_int);
-        }
-        std::cout << arc.getHits() << std::endl;
+    try {
+        caches::ARC<int> arc{m};
+        auto test {[&](std::vector<int>& pages){
+            for(const auto& i : pages) {
+                arc.lookup_update(i, slow_get_page_int);
+            }
+            std::cout << arc.getHits() << std::endl;
 
-        arc.clear();
-    }};
-    test(pages);
+            arc.clear();
+        }};
+        test(pages);
+    }
+    catch(std::exception& e) {
+        std::cout << e.what() << std::endl;
+    }
 #else
     caches::IdealCache<int> ideal{m};
     ideal.setBuffer(pages);

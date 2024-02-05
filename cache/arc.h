@@ -55,7 +55,10 @@ private:
     bool full(const list_t& list) const noexcept {return (list.size() == cache_size);}
 public:
     ARC() = default;
-    ARC(size_t size): cache_size(size/2) {if (cache_size % 2 != 0) odd_size = true;}
+    ARC(size_t size): cache_size(size/2) {
+        if (size < 1) throw std::runtime_error("Wrong cache size"); 
+        if (cache_size % 2 != 0) odd_size = true;
+    }
     void setSize(size_t size) {cache_size = size/2; if (cache_size % 2 != 0) odd_size = true;}
     size_t getHits() const {return hits;}
     template <typename F> void lookup_update(int key, F slow_get_page)
