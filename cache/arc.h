@@ -27,11 +27,17 @@ private:
     buffer mru, mfu, mru_ghost, mfu_ghost;
 
     template <typename F> void move(buffer& src, buffer& dst, KeyT key, F slow_get_page) {
-        src.list.erase(src.hash[key]);
-        src.hash.erase(key);
-        dst.list.emplace_front(key, slow_get_page(key));
-        dst.hash.emplace(key, dst.list.begin());
+        try {
+            dst.list.emplace_front(key, slow_get_page(key));
+            dst.hash.emplace(key, dst.list.begin());
+            src.list.erase(src.hash[key]);
+            src.hash.erase(key);
+        }
+        catch(std::exception& e) {
+            dst.list.pop_front();
+        }
     }
+
 
     template <typename F> void moveTop(buffer& src, KeyT key, F slow_get_page) {
         src.list.erase(src.hash[key]);
@@ -47,7 +53,7 @@ private:
             move(mfu, mfu_ghost, mfu.list.back().first, slow_get_page);
         }
     }
-    bool full(const list_t& list) const {return (list.size() == cache_size);}
+    bool full(const list_t& list) const noexcept {return (list.size() == cache_size);}
 public:
     ARC():cache_size(0) {}
     ARC(size_t size): cache_size(size/2) {if (cache_size % 2 != 0) odd_size = true;}
