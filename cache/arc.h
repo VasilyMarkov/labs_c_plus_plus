@@ -35,22 +35,28 @@ private:
         }
         catch(std::exception& e) {
             dst.list.pop_front();
+            throw std::runtime_error("Move failed");
         }
     }
 
     template <typename F> void moveTop(buffer& src, KeyT key, F slow_get_page) {
-        src.list.emplace_front(key, slow_get_page(key));
-        src.list.erase(src.hash[key]);
-        src.hash[key] = src.list.begin();
+        try {
+            src.list.emplace_front(key, slow_get_page(key));
+            src.list.erase(src.hash[key]);
+            src.hash[key] = src.list.begin();
+        }
+        catch(std::exception& e) {
+            src.list.pop_front();
+            throw std::runtime_error("MoveTop failed");
+        }
     }
 
     template <typename F> void toGhost(const KeyT i, const double p, F slow_get_page) {
         if(!mru.list.empty() && ((mru.list.size() > p) || ((mfu_ghost.hash.find(i) != mfu_ghost.hash.end()) && (p == mru.list.size())))) {
             move(mru, mru_ghost, mru.list.back().first, slow_get_page);
+            return;
         }
-        else {
-            move(mfu, mfu_ghost, mfu.list.back().first, slow_get_page);
-        }
+        move(mfu, mfu_ghost, mfu.list.back().first, slow_get_page);
     }
     bool full(const list_t& list) const noexcept {return (list.size() == cache_size);}
 public:
