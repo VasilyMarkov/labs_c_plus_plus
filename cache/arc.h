@@ -11,7 +11,7 @@ class ARC{
 private:
     size_t cache_size{0};
     size_t hits{0};
-    double p{0};
+    double p{0}; //balance target
     bool odd_size = false;
     using list_t = typename std::list<std::pair<KeyT, T>>;
     using list_it = typename std::list<std::pair<KeyT, T>>::iterator;
@@ -79,13 +79,13 @@ public:
         }
         else if(mru_ghost.hash.find(key) != mru_ghost.hash.end()) {
             hits++;
-            p = std::min(static_cast<double>(cache_size), p+std::max(static_cast<double>(mfu_ghost.list.size())/mru_ghost.list.size(), 1.0));
+            p = std::min(static_cast<double>(cache_size), p + std::max(static_cast<double>(mfu_ghost.list.size()) / mru_ghost.list.size(), 1.0));
             toGhost(key, p, slow_get_page);
             move(mru_ghost, mfu, key, slow_get_page);
         }
         else if(mfu_ghost.hash.find(key) != mfu_ghost.hash.end()) {
             hits++;
-            p = std::max(0.0, p-std::max(static_cast<double>(mru_ghost.list.size())/mfu_ghost.list.size(), 1.0));
+            p = std::max(0.0, p - std::max(static_cast<double>(mru_ghost.list.size()) / mfu_ghost.list.size(), 1.0));
             toGhost(key, p, slow_get_page);
             move(mfu_ghost, mfu, key, slow_get_page);
         }
@@ -102,10 +102,10 @@ public:
                 }
             }
             else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
-                if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() >= cache_size) {
+                if(mru.list.size() + mfu.list.size() + mru_ghost.list.size() + mfu_ghost.list.size() >= cache_size) {
                     auto size_limit = 2*cache_size;
                     if (odd_size) size_limit++;
-                    if(mru.list.size()+mfu.list.size()+mru_ghost.list.size()+mfu_ghost.list.size() == size_limit) {
+                    if(mru.list.size() + mfu.list.size() + mru_ghost.list.size() + mfu_ghost.list.size() == size_limit) {
                         mfu_ghost.hash.erase(mfu_ghost.list.back().first);
                         mfu_ghost.list.pop_back();
                     }
