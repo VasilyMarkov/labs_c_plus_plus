@@ -12,7 +12,7 @@ void print(const std::vector<T>& vec) {
 
 std::pair<size_t, std::vector<int>> readInputData() {
     std::vector<int> pages;
-    size_t m, n;
+    size_t m = 0, n = 0;
     std::cin >> m >> n;
 
     for(size_t i = 0; i < n; ++i) {
