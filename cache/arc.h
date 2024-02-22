@@ -104,16 +104,24 @@ public:
             else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
                 if(mru.list.size() + mfu.list.size() + mru_ghost.list.size() + mfu_ghost.list.size() >= cache_size) {
                     auto size_limit = 2*cache_size;
+
                     if (odd_size) size_limit++;
+
+                    toGhost(key, p, slow_get_page);
+
                     if(mru.list.size() + mfu.list.size() + mru_ghost.list.size() + mfu_ghost.list.size() == size_limit) {
                         mfu_ghost.hash.erase(mfu_ghost.list.back().first);
                         mfu_ghost.list.pop_back();
-                    }
-                    toGhost(key, p, slow_get_page);
+                    }      
                 }
             }
-            mru.list.emplace_front(key, slow_get_page(key));
-            mru.hash.emplace(key, mru.list.begin());
+            try {
+                mru.list.emplace_front(key, slow_get_page(key));
+                mru.hash.emplace(key, mru.list.begin());
+            }
+            catch (std::runtime_error&) {
+                mru.list.pop_front();
+            }
         }
     }
 
