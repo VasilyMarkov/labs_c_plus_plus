@@ -15,11 +15,13 @@ std::pair<size_t, std::vector<int>> readInputData() {
     size_t m = 0, n = 0;
     std::cin >> m >> n;
 
+    if(std::cin.fail()) throw std::runtime_error("Invalid input data");
+
     for(size_t i = 0; i < n; ++i) {
         int tmp;
         std::cin >> tmp;
         pages.push_back(tmp);
     }
-    if(std::cin.fail()) throw std::runtime_error("Invalid input data");
+    
     return {m, pages};
 }
