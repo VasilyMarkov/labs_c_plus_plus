@@ -70,31 +70,49 @@ public:
     template <typename F> void lookup_update(int key, F slow_get_page)
     {
         if(mru.hash.find(key) != mru.hash.end()) {
-            hits++;
             move(mru, mfu, key, slow_get_page);
-        }
-        else if(mfu.hash.find(key) != mfu.hash.end()) {
             hits++;
+        }
+        else if(mfu.hash.find(key) != mfu.hash.end()) {  
             moveTop(mfu, key, slow_get_page);
+            hits++;
         }
         else if(mru_ghost.hash.find(key) != mru_ghost.hash.end()) {
-            hits++;
-            p = std::min(static_cast<double>(cache_size), p + std::max(static_cast<double>(mfu_ghost.list.size()) / mru_ghost.list.size(), 1.0));
-            toGhost(key, p, slow_get_page);
-            move(mru_ghost, mfu, key, slow_get_page);
+            try {
+                p = std::min(static_cast<double>(cache_size), p + std::max(static_cast<double>(mfu_ghost.list.size()) / mru_ghost.list.size(), 1.0));
+                toGhost(key, p, slow_get_page);
+                move(mru_ghost, mfu, key, slow_get_page);
+                hits++;
+            }
+            catch(std::runtime_error& e) {
+                p = std::min(static_cast<double>(cache_size), p + std::max(static_cast<double>(mfu_ghost.list.size()) / mru_ghost.list.size(), 1.0));
+            }
         }
         else if(mfu_ghost.hash.find(key) != mfu_ghost.hash.end()) {
-            hits++;
-            p = std::max(0.0, p - std::max(static_cast<double>(mru_ghost.list.size()) / mfu_ghost.list.size(), 1.0));
-            toGhost(key, p, slow_get_page);
-            move(mfu_ghost, mfu, key, slow_get_page);
+            try {
+                p = std::max(0.0, p - std::max(static_cast<double>(mru_ghost.list.size()) / mfu_ghost.list.size(), 1.0));
+                toGhost(key, p, slow_get_page);
+                move(mfu_ghost, mfu, key, slow_get_page);
+                hits++;
+            }
+            catch(std::runtime_error& e) {
+                p = std::min(static_cast<double>(cache_size), p + std::max(static_cast<double>(mfu_ghost.list.size()) / mru_ghost.list.size(), 1.0));
+            }
         }
         else {
             if(mru.list.size() + mru_ghost.list.size() == cache_size) {
                 if(mru.list.size() < cache_size) {
+                    auto key_backup = mru_ghost.list.back().first;
+                    auto it_backup = mru_ghost.list.end();
                     mru_ghost.hash.erase(mru_ghost.list.back().first);
                     mru_ghost.list.pop_back();
-                    toGhost(key, p, slow_get_page);
+                    try {
+                        toGhost(key, p, slow_get_page);
+                    }
+                    catch (std::runtime_error& e) {
+                        mru_ghost.hash.emplace(key_backup, it_backup);
+                        mru_ghost.list.emplace_back(key_backup, slow_get_page(key_backup));      
+                    }
                 }
                 else {
                     mru.hash.erase(mru.list.back().first);
@@ -103,12 +121,10 @@ public:
             }
             else if(mru.list.size() + mru_ghost.list.size() < cache_size) {
                 if(mru.list.size() + mfu.list.size() + mru_ghost.list.size() + mfu_ghost.list.size() >= cache_size) {
-                    auto size_limit = 2*cache_size;
-
-                    if (odd_size) size_limit++;
-
                     toGhost(key, p, slow_get_page);
 
+                    auto size_limit = 2*cache_size;
+                    if (odd_size) size_limit++;
                     if(mru.list.size() + mfu.list.size() + mru_ghost.list.size() + mfu_ghost.list.size() == size_limit) {
                         mfu_ghost.hash.erase(mfu_ghost.list.back().first);
                         mfu_ghost.list.pop_back();
